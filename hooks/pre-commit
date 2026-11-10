@@ -1,0 +1,8 @@
+#!/bin/sh
+# Runs the secret/PII/data scan on staged files. Enabled once per clone with:
+#   git config core.hooksPath hooks
+# Uses the host Python (standard library only), so it works without Docker running.
+# Builtins and exec only: on some Windows machines Git's shell cannot fork child processes.
+# On Windows (OS=Windows_NT) "python3" is often only a Microsoft Store stub.
+if [ "$OS" = Windows_NT ]; then exec python hooks/scan.py; fi
+exec python3 hooks/scan.py

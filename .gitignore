@@ -1,0 +1,8 @@
+# Corpora, rewrites and any raw mail never enter git (README section 4).
+data/
+*.eml
+*.mbox
+
+# Python caches
+__pycache__/
+.pytest_cache/
