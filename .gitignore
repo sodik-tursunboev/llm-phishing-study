@@ -1,5 +1,5 @@
 # Corpora, rewrites and any raw mail never enter git (README section 4).
-data/
+/data/
 *.eml
 *.mbox
 
