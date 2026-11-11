@@ -7,7 +7,7 @@ import email.message
 import pytest
 
 from src.data.download import RAW, read_config, sha256
-from src.data.emails import Rejected, extract_urls, html_to_text, is_english, normalise, scrub
+from src.data.emails import Rejected, extract_urls, html_to_text, is_english, normalise, render, scrub
 from src.data.prepare import REASONS, jaccard_components
 
 
@@ -59,6 +59,15 @@ def test_normalise_scrubs_recipient_everywhere_and_sender_in_headers_only():
     assert msg["subject"] == "Hello [NAME]"
     assert msg["text"] == "Dear [NAME], PayPal asks you to verify at http://example.com/login\n"
     assert msg["urls"] == ["http://example.com/login"]
+
+
+def test_render_round_trip_keeps_content():
+    raw = (b"Received: from mx.example.com\nFrom: Bank <info@example.com>\nSubject: Caf\xc3\xa9 notice\n"
+           b"Content-Type: text/plain; charset=utf-8\n\nPay at http://example.com/pay now.\n")
+    msg = normalise(raw)
+    again = normalise(render(msg))
+    assert {k: again[k] for k in ("subject", "text", "html", "urls")} == {k: msg[k] for k in ("subject", "text", "html", "urls")}
+    assert [k for k, _ in again["headers"]][:3] == ["Received", "From", "Subject"]  # original order first
 
 
 def test_attachments_are_rejected():

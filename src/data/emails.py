@@ -9,6 +9,8 @@ import email.policy
 import email.utils
 import html
 import re
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 from html.parser import HTMLParser
 
 from langdetect import DetectorFactory, detect
@@ -132,3 +134,30 @@ def normalise(raw):
     }
     result["urls"] = extract_urls(result["text"], result["html"])
     return result
+
+
+MIME_HEADERS = {"content-type", "content-transfer-encoding", "mime-version"}
+
+
+def render(msg):
+    """RFC 822 bytes for a normalised message: its own headers, then a freshly encoded body.
+
+    Every detector scores these bytes, and every condition (original or rewritten) goes through
+    this same function, so encoding differences cannot differ between conditions.
+    """
+    parts = [MIMEText(body, subtype, "utf-8") for body, subtype in ((msg["text"], "plain"), (msg["html"], "html")) if body]
+    if len(parts) == 1:
+        out = parts[0]
+    else:  # both bodies, or (never after filtering) neither
+        out = MIMEMultipart("alternative")
+        for part in parts:
+            out.attach(part)
+    mime = list(out.items())
+    for name in {k for k, _ in mime}:
+        del out[name]
+    for name, value in msg["headers"]:  # original order first, minus the old MIME headers
+        if name.lower() not in MIME_HEADERS:
+            out[name] = value
+    for name, value in mime:
+        out[name] = value
+    return out.as_bytes(policy=email.policy.default)

@@ -27,3 +27,4 @@ def test_code_under_src_data_is_allowed():
 def test_passes_clean_text_and_reserved_example_domain():
     assert find_problems("notes.md", "Score with SpamAssassin, DOI 10.1109/CARS67163.2025.11337548") == []
     assert find_problems("tests/fixture.py", "sender = 'alice" + "@" + "example.com'") == []
+    assert find_problems("tests/fixture.py", "sender = 'bob" + "@" + "pay-pal.example.com'") == []

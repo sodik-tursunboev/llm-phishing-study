@@ -14,6 +14,14 @@ Every stage runs in one Docker image (`Dockerfile`). Every stage except the corp
 | Corpus files | 16 files | SHA-256 in `configs/raw_files.csv` |
 | Host used | Windows 11, Docker 29.9.2, git 2.55.0 | not pinned; only Docker is needed to reproduce |
 
+## Lynceus snapshot (L4)
+
+Lynceus is evaluated at commit `d9c3ba88f9b995d9079434d39ad8d977dbb49b05`. Only its `core/` and `rules/` folders are copied, into the Docker volume `lynceus-src`, mounted read-only at `/opt/lynceus`. The adapter refuses any other commit. Its Python dependencies are pinned in `requirements.txt`. Create the snapshot once (git 2.40 or later; run in `cmd` or bash, because PowerShell 5.1 corrupts binary pipes):
+
+```bash
+git -C <path-to-lynceus-repo> archive --add-virtual-file=COMMIT:d9c3ba88f9b995d9079434d39ad8d977dbb49b05 d9c3ba88f9b995d9079434d39ad8d977dbb49b05 core rules | docker run --rm -i -v lynceus-src:/opt/lynceus llm-phishing-study tar -x -C /opt/lynceus
+```
+
 ## Where the data lives
 
 The corpora live in a Docker volume, `llm-phishing-data`, mounted at `/work/data`. They never sit on the host disk. When `phishing3.mbox` was first saved to the Windows disk, Microsoft Defender quarantined it as `PWS:HTML/Bankfraud`, which is expected for real phishing. The volume lives inside Docker's Linux VM, so the phishing files never reach the host filesystem and stay behind the container boundary. We did not change any antivirus setting.
@@ -38,13 +46,19 @@ Prepare the data offline: parse, scrub, filter, deduplicate, cluster, split (abo
 docker run --rm --network none -v "${PWD}:/work" -v llm-phishing-data:/work/data llm-phishing-study python -m src.data.prepare
 ```
 
+Score one split with one layer, offline (prints only counts, errors, runtime and the output hash):
+
+```bash
+docker run --rm --network none -v "${PWD}:/work" -v llm-phishing-data:/work/data -v lynceus-src:/opt/lynceus:ro llm-phishing-study python -m src.detectors.run lynceus test
+```
+
 Check command (all tests, offline):
 
 ```bash
-docker run --rm --network none -v "${PWD}:/work" -v llm-phishing-data:/work/data llm-phishing-study python -m pytest -q -p no:cacheprovider
+docker run --rm --network none -v "${PWD}:/work" -v llm-phishing-data:/work/data -v lynceus-src:/opt/lynceus:ro llm-phishing-study python -m pytest -q -p no:cacheprovider
 ```
 
-`tests/test_environment.py` proves the container has no network (only the loopback interface exists) and that SpamAssassin flags its GTUBE test message with local rules only. As a negative control, running the same command without `--network none` makes the network test fail. Without the data volume, the raw-hash test is skipped.
+`tests/test_environment.py` proves the container has no network (only the loopback interface exists) and that SpamAssassin flags its GTUBE test message with local rules only. As a negative control, running the same command without `--network none` makes the network test fail. Without the data volume the raw-hash test is skipped; without the Lynceus volume the Lynceus tests are skipped.
 
 Enable the secret/PII/data scan once per clone (uses host Python, standard library only):
 

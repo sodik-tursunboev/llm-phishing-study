@@ -18,7 +18,7 @@ PATTERNS = {
 }
 
 # RFC 2606 reserves these domains for examples, so test fixtures may use them.
-EXAMPLE_EMAIL = re.compile(r"@(\w+\.)*example\.(com|org|net)$", re.IGNORECASE)
+EXAMPLE_EMAIL = re.compile(r"@([\w-]+\.)*example\.(com|org|net)$", re.IGNORECASE)
 
 
 def find_problems(path, text):
