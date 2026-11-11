@@ -77,6 +77,8 @@ That meets all three go criteria. Detection rates were deliberately not looked a
 
 **Freeze:** tag `lynceus-eval-v1` once the authors confirm section 5's mapping and the dev threshold is fixed, before any rewritten data is scored.
 
+**Version change pending (2026-11-11):** the first author is improving Lynceus. The rule is that no data from this study (corpora, dev, test, rewrites) may be used for that work. When the new commit is ready, the adapter is re-pinned, sections 1 and 7 are re-run, and only then is Lynceus calibrated on dev; its dev results are not reported before that. The change goes in `DEVIATIONS.md`.
+
 ## 8. Known limits
 
 - Lynceus's README says it was built and checked on one Windows 11 machine, and that its CI has never run.

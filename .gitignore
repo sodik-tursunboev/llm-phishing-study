@@ -3,6 +3,9 @@
 *.eml
 *.mbox
 
+# Generated from paper/manuscript.md by src/paper/build.py
+paper/manuscript_filled.md
+
 # Python caches
 __pycache__/
 .pytest_cache/

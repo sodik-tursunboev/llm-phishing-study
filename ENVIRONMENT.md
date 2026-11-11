@@ -46,10 +46,23 @@ Prepare the data offline: parse, scrub, filter, deduplicate, cluster, split (abo
 docker run --rm --network none -v "${PWD}:/work" -v llm-phishing-data:/work/data llm-phishing-study python -m src.data.prepare
 ```
 
-Score one split with one layer, offline (prints only counts, errors, runtime and the output hash):
+Fit and freeze L2 (train only; C chosen on dev; writes `configs/tfidf_lr.json` with the model hash):
+
+```bash
+docker run --rm --network none -v "${PWD}:/work" -v llm-phishing-data:/work/data llm-phishing-study python -m src.detectors.tfidf_lr
+```
+
+Score one split with one layer (`spamassassin`, `tfidf_lr` or `lynceus`), offline. It prints only counts, errors, runtime and the output hash:
 
 ```bash
 docker run --rm --network none -v "${PWD}:/work" -v llm-phishing-data:/work/data -v lynceus-src:/opt/lynceus:ro llm-phishing-study python -m src.detectors.run lynceus test
+```
+
+Fix the dev-calibrated thresholds (after scoring dev with all three layers; writes `configs/thresholds.json`), then fill the manuscript's numbers from the result files:
+
+```bash
+docker run --rm --network none -v "${PWD}:/work" -v llm-phishing-data:/work/data llm-phishing-study python -m src.detectors.calibrate
+docker run --rm --network none -v "${PWD}:/work" llm-phishing-study python -m src.paper.build
 ```
 
 Check command (all tests, offline):
@@ -75,5 +88,6 @@ git config core.hooksPath hooks
 ## Not verified
 
 - Debian dependencies of SpamAssassin (Perl modules) are not pinned individually; a later rebuild could pick up a Debian security update.
+- SpamAssassin scores were checked to be independent of the run date in one diagnostic: re-scoring dev with Perl's clock set to 2040 changed no rule hit on any of 997 messages (2026-11-11). The script was not kept.
 - The scan cannot recognise student IDs (format unknown) or names; authors must keep IDs out of the repo by hand.
 - Not yet built or run on the co-author's machine. The hook was tested on Windows only (it blocked a staged file containing an email address); not yet on macOS or Linux.

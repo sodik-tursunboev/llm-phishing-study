@@ -1,0 +1,30 @@
+{
+  "layers": {
+    "spamassassin": {
+      "threshold": 9.393,
+      "dev_fpr": 0.0017,
+      "dev_tpr": 0.2,
+      "native_dev_fpr": 0.0584,
+      "native_dev_tpr": 0.5108,
+      "n_ham": 582,
+      "n_phishing": 415,
+      "errors": 0,
+      "version": "SpamAssassin 4.0.1 scoreset 0",
+      "config_hash": "7750ef9366d820aafe660c2fa53ab00131938f01d059a6a9734beec221d46417"
+    },
+    "tfidf_lr": {
+      "threshold": -1.594172993954964,
+      "dev_fpr": 0.0086,
+      "dev_tpr": 0.9855,
+      "native_dev_fpr": 0.0017,
+      "native_dev_tpr": 0.9855,
+      "n_ham": 582,
+      "n_phishing": 415,
+      "errors": 0,
+      "version": "tfidf_lr C=100.0",
+      "config_hash": "42d6148a5c92e4d5f9370c97b21ba004e2e9ef7f1e5b493c13e9348ea30e0e38"
+    }
+  },
+  "rule": "flag when score > threshold",
+  "target_dev_fpr": 0.01
+}
