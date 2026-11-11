@@ -1,0 +1,17 @@
+file,label,url,bytes,sha256,retrieved_utc
+phishing0.mbox,phishing,https://monkey.org/~jose/phishing/phishing0.mbox,3119972,6184b0a34ed8cbbb252676e21c1eab9eac5fa4be89c61e30cc9954ebbb25d848,2026-11-10
+phishing1.mbox,phishing,https://monkey.org/~jose/phishing/phishing1.mbox,4191770,99f02474a11086408a5ce6d11ef38823f003c6611a4312c31fbee96773eeba28,2026-11-10
+20051114.mbox,phishing,https://monkey.org/~jose/phishing/20051114.mbox,4071556,928cbf1c394d01d0b398ded8dc7cbd94dd4ce9cb0d4efdecd12696338c247926,2026-11-10
+phishing2.mbox,phishing,https://monkey.org/~jose/phishing/phishing2.mbox,10420294,5113277984eae759a5ff958ccf408b542441ce033a49b923ab3b0f324075e6bd,2026-11-10
+phishing3.mbox,phishing,https://monkey.org/~jose/phishing/phishing3.mbox,20067215,b29336d2e31c2dff19639415e98ed2aced5b4d63675ea5e29bea1a7d4e452841,2026-11-10
+phishing-2015,phishing,https://monkey.org/~jose/phishing/phishing-2015,8815568,7523e62a5e6e4ee8134ab8b1a628e423097a7779e1003b28422864aa34f1c319,2026-11-10
+phishing-2016,phishing,https://monkey.org/~jose/phishing/phishing-2016,12578274,42393e4d686193bfb879d1608c23fd4d3b698ccd4d73f0e1d2276ba709718483,2026-11-10
+phishing-2017,phishing,https://monkey.org/~jose/phishing/phishing-2017,11352450,110fba876b38b44035bf065788952674bc68a7b6879c345a515a9ac844b1d704,2026-11-10
+phishing-2018,phishing,https://monkey.org/~jose/phishing/phishing-2018,8775701,83f49cf2a76c7b29b205d22d8778e46848e36af0f15ee1df126a543696acd48d,2026-11-10
+phishing-2019,phishing,https://monkey.org/~jose/phishing/phishing-2019,5211476,cab39d6fcb38cf80cdaabb3e6ffd1222777e2fcaac7e8480321b7f729c2e3c0e,2026-11-10
+phishing-2020,phishing,https://monkey.org/~jose/phishing/phishing-2020,5826445,99e20bf25f5e8556d37103f2c8140cd75181a62d3df91df8acf9d9aece9f08bb,2026-11-10
+phishing-2021,phishing,https://monkey.org/~jose/phishing/phishing-2021,2719946,636707cff42245d1482e4ae8a2c03369717a5e06bf9d1a0f4ec5dcd846661cee,2026-11-10
+phishing-2022,phishing,https://monkey.org/~jose/phishing/phishing-2022,4775954,a6291e2cb990204766fce425423949b403cce4ae6a660fc8d08812e40a063fa7,2026-11-10
+20030228_easy_ham.tar.bz2,ham,https://spamassassin.apache.org/old/publiccorpus/20030228_easy_ham.tar.bz2,1612216,2b7b65904bcfcc31d2b5f51946f2d261370b257402cbbd62930b46ab83367438,2026-11-10
+20030228_easy_ham_2.tar.bz2,ham,https://spamassassin.apache.org/old/publiccorpus/20030228_easy_ham_2.tar.bz2,1077892,b4bd3dc5ae5b40f38e99a0e41ad7d16b428b56e818e3a6ffa07330d62004dd38,2026-11-10
+20030228_hard_ham.tar.bz2,ham,https://spamassassin.apache.org/old/publiccorpus/20030228_hard_ham.tar.bz2,1029898,ce2ce67880643dbde65ea7f85bffbfe4417349c4bd80b6b0de56262ae6b0a9c9,2026-11-10

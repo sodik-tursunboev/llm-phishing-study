@@ -8,7 +8,7 @@ import subprocess
 import sys
 
 # Raw corpora and rewrites live in data/ and must never be committed (README section 4).
-BLOCKED_PATH = re.compile(r"(^|/)data/|\.(eml|mbox)$")
+BLOCKED_PATH = re.compile(r"^data/|\.(eml|mbox)$")  # top-level data/ only; src/data/ is code
 
 PATTERNS = {
     "private key": re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----"),

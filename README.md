@@ -4,7 +4,7 @@ Controlled, offline, reproducible study · Vistula University · Architecture of
 
 **Authors:** Sodiq Tursunboev, Kavish [surname] (pair)
 **Official topic:** The Evasion Capabilities of LLM-Generated Phishing Payloads Against Static Security Architectures
-**Version:** v1 · 2026-11-11
+**Version:** v1 · 2026-11-11 · **Scope update v3 (2026-11-11) supersedes parts of this brief; every change is listed in `DEVIATIONS.md`.**
 
 > **Claude Code: read this whole file before acting.** It is the single source of truth. Work one milestone at a time (section 10), stop at every **[GATE]**, and keep replies short (section 9). Start with **M0 only**. Never invent results, references, or facts about Lynceus: derive them from code and data, or write UNKNOWN.
 

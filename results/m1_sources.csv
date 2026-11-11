@@ -1,0 +1,17 @@
+source,label,read,parse_error,non_text_part,date_unknown,after_cutoff,empty,not_english,near_duplicate,kept
+phishing0.mbox,phishing,414,0,28,0,0,1,1,199,185
+phishing1.mbox,phishing,456,0,28,0,0,2,25,247,154
+20051114.mbox,phishing,438,0,25,0,0,2,25,386,0
+phishing2.mbox,phishing,1423,1,70,0,0,36,61,831,424
+phishing3.mbox,phishing,2279,0,344,0,0,29,130,1014,762
+phishing-2015,phishing,307,0,43,0,0,2,7,74,181
+phishing-2016,phishing,494,0,139,0,0,6,9,76,264
+phishing-2017,phishing,325,0,70,0,0,1,2,64,188
+phishing-2018,phishing,288,0,52,0,0,1,9,46,180
+phishing-2019,phishing,243,0,43,0,0,3,11,48,138
+phishing-2020,phishing,158,0,27,0,0,0,19,17,95
+phishing-2021,phishing,101,0,20,0,0,0,11,12,58
+phishing-2022,phishing,247,0,21,2,17,0,9,62,136
+20030228_easy_ham.tar.bz2,ham,2500,0,79,0,0,0,19,71,2331
+20030228_easy_ham_2.tar.bz2,ham,1400,0,44,0,0,0,1,36,1319
+20030228_hard_ham.tar.bz2,ham,250,0,5,0,0,0,5,13,227

@@ -1,6 +1,6 @@
 # Data provenance
 
-**Status: pre-download.** Nothing has been downloaded. **[GATE]** The authors approve the terms and the download list below before acquisition (README section 5.1). Checksums are added by script after download, never by hand.
+**Status: downloaded.** The authors approved the terms and the download list on 2026-11-11 (licence [GATE], README section 5.1). Sizes and SHA-256 hashes were written by `src/data/download.py` into `configs/raw_files.csv`; nothing was typed by hand.
 
 All pages below were opened on 2026-11-11 by Claude Code; the authors have not yet re-checked them.
 
@@ -51,17 +51,42 @@ Excluded: the `20021010_*` files (older versions; the readme says the newer sets
 
 ## 4. Checksums
 
-Filled in by the download script: file, URL, download date, size in bytes, SHA-256. A test re-hashes the files and must match.
+`configs/raw_files.csv`: file, label, URL, size in bytes, SHA-256, retrieval date (UTC). `src/data/download.py` re-hashes every file on each run, and `tests/test_data.py` checks them too; a mismatch fails. Per-message SHA-256 hashes are in `results/m1_messages.csv`, so a reviewer can check they hold the same messages.
+
+The files are stored in a Docker volume, not on the host disk, because the host antivirus quarantines real phishing HTML (ENVIRONMENT.md).
+
+## 5. Processing (`src/data/prepare.py`, offline)
+
+Steps run in this order. Each dropped message keeps its reason in `results/m1_messages.csv`; nothing is dropped silently.
+
+1. **Parse** each message (Python `email` package). If parsing fails: `parse_error`.
+2. **Text only.** Any part other than text/plain or text/html, such as an attachment, image or forwarded email: `non_text_part`.
+3. **Scrub PII** in headers and bodies:
+   - The local part of every email address becomes `user`; the domain stays.
+   - Phone numbers written with separators become `[PHONE]`.
+   - Recipients' display names and mailbox names become `[NAME]` everywhere.
+   - Sender display names become `[NAME]` in headers only, because in phishing they are forged brand names that belong to the content under study.
+   - Other personal names in bodies are not detected.
+4. **Pre-LLM cutoff**, `phishing-2022` only: a missing or unparseable Date gives `date_unknown`; a Date on or after 2022-11-30 gives `after_cutoff`.
+5. **Empty body:** `empty`.
+6. **English only.** `langdetect` (seeded) on the body without URLs must return `en`, otherwise `not_english`. A function-word rule tried first dropped many short or link-heavy messages that `langdetect` labels English, so it was replaced before any split or detector existed.
+7. **Near-duplicates.** Within each class, messages whose sets of 5-word phrases have Jaccard similarity of at least 0.8 (URLs and digits masked) form one group. The first message in corpus order is kept; the others become `near_duplicate`.
+8. **Template clusters.** Kept messages with Jaccard of at least 0.5 are joined into one cluster, transitively.
+9. **Splits by cluster.** Clusters are shuffled with seed 2026, then fill pilot (until 25 messages per class), test (25%), dev (15%) and train (the rest). No cluster spans two splits (`tests/test_data.py`).
+
+Outputs: `data/messages.jsonl` holds the content (private, in the volume). `results/m1_sources.csv` holds counts per source and reason. `results/m1_splits.csv` holds counts, clusters, median words, HTML share and median URLs per class and split.
 
 ## Open questions
 
-1. **Era match.** SpamAssassin ham is from 2002-2003; Nazario phishing spans 2005-2022. A classifier could learn "era" instead of "phishing". Option: restrict phishing to the 2005-2007 files. Decide after per-year counts following deduplication.
-2. Should we ask the corpus owner about `private-phishing4.mbox`? Default: no, keep it excluded.
-3. Exact CC BY attribution wording for the paper.
+1. **Era match.** SpamAssassin ham is from 2002-2003; Nazario phishing spans 2005-2022. A classifier could learn "era" instead of "phishing". Option: keep only phishing from the 2005-2007 files. Kept counts per file are in `results/m1_sources.csv`, so the authors can decide whether the 2005-2007 subset still gives at least 300 test messages.
+2. **HTML imbalance.** Most kept phishing is HTML and most ham is plain text (`results/m1_splits.csv`). This does not bias the paired original-vs-rewrite comparison, but it inflates baseline detection and belongs in the limitations.
+3. Should we ask the corpus owner about `private-phishing4.mbox`? Default: no, keep it excluded.
+4. Exact CC BY attribution wording for the paper.
 
 ## Not verified
 
-- Message counts (only the readme's numbers and listing sizes so far).
-- Whether Nazario files contain attachments. Out of scope (text only); the parser will drop them and count drops.
+- Thresholds (Jaccard 0.8 and 0.5) are conventional choices, not tuned; nobody has looked at example clusters. Authors could inspect a few clusters locally (never through a cloud model).
+- The scrub was checked with unit tests only, not by reading scrubbed messages: corpus text must not be sent to Claude.
+- `langdetect` accuracy on these corpora (language labels were seen only as counts). The comparison with the function-word rule was a one-off diagnostic script, not kept in the repo.
 - That the `20030228` ham sets contain every `20021010` ham message (the readme says "generally").
 - Licence of the Toth et al. dataset.
