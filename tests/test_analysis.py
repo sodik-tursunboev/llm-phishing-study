@@ -50,7 +50,7 @@ def test_judge_answers_are_yes_no_or_left_blank():
 def test_only_an_author_name_counts_as_checked():
     from src.analysis.judge import checker
 
-    assert checker("Sodik") == "Sodik Tursunboev" and checker(" kavish ") == "Kavish"
+    assert checker("Sodik") == "Sodik Tursunboev" and checker(" kavish ") == "Kavish Chaudhari"
     assert checker("") is None and checker("yes") is None and checker("Claude") is None
 
 

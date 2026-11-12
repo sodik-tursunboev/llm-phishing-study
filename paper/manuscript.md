@@ -1,7 +1,9 @@
 <!--
 Manuscript source. Every number is a {{placeholder}} filled from result and config files by
-`python -m src.paper.build`; never type a number here. Text marked [AUTHORS: ...] or [CITE: ...]
-must be written or verified by the authors. Target: about 2,000 words including the abstract.
+`python -m src.paper.build`; never type a number here. Student IDs come from the git-ignored
+paper/authors.local.json. Before submitting, the authors must make every statement in the
+Declarations true: Kavish verifies each reference and number; both authors read the full texts of
+[1]-[3], revise the text in their own words, and can explain every sentence.
 -->
 
 # Does One-Pass LLM Paraphrasing Lower Detection by Static Email Filters? A Paired, Offline Study
@@ -12,203 +14,202 @@ Sodik Tursunboev, Kavish Chaudhari · Vistula University · Architecture of Comp
 
 ## Abstract
 
-Large language models can rewrite a phishing email in seconds. We asked whether one neutral paraphrase by a small local model lowers detection by three static email layers: SpamAssassin, a TF-IDF classifier with logistic regression, and Lynceus, the first author's rule-based detector.
+Large language models can rewrite a phishing email in seconds, and several studies report that such rewrites slip past existing filters. We asked a narrower question. If a small, locally run model paraphrases real phishing emails once, with no feedback from any filter, does detection by static email defences drop, and which layer loses it?
 
-Using public corpora, we scored {{gates_phishing_passed}} phishing and {{gates_ham_passed}} legitimate test emails in four versions: the original, a plain-text copy, a copy after a dictionary synonym swap, and a rewrite by gemma3:4b that had to keep every link, number and entity.
+We tested three static layers: SpamAssassin, a TF-IDF classifier with logistic regression, and Lynceus, a rule-based detector built by the first author. We scored each of {{gates_phishing_passed}} phishing and {{gates_ham_passed}} legitimate emails from public corpora in four versions: as received, as a plain-text copy, after a dictionary synonym swap, and after a gemma3:4b rewrite that had to keep every link, number and name.
 
-Against the plain-text copy, the rewrite did not lower phishing detection at the calibrated thresholds. The change, with its 95% confidence interval, was {{spamassassin_phishing_calibrated_llm_vs_null_a_signed}} percentage points for SpamAssassin {{spamassassin_phishing_calibrated_llm_vs_null_a_ci}}, {{tfidf_lr_phishing_calibrated_llm_vs_null_a_signed}} for TF-IDF {{tfidf_lr_phishing_calibrated_llm_vs_null_a_ci}} and {{lynceus_phishing_calibrated_llm_vs_null_a_signed}} for Lynceus {{lynceus_phishing_calibrated_llm_vs_null_a_ci}}. At its native threshold, Lynceus flagged more rewritten phishing ({{lynceus_phishing_native_llm_vs_null_a_signed}} points). The synonym swap lowered detection slightly. Converting HTML emails to plain text changed Lynceus's native detection by {{lynceus_phishing_native_null_a_vs_orig_signed}} points.
+Compared with the plain-text copy, the rewrite did not lower phishing detection at the calibrated thresholds. SpamAssassin changed by {{spamassassin_phishing_calibrated_llm_vs_null_a_signed}} percentage points (95% CI {{spamassassin_phishing_calibrated_llm_vs_null_a_ci}}), TF-IDF by {{tfidf_lr_phishing_calibrated_llm_vs_null_a_signed}} ({{tfidf_lr_phishing_calibrated_llm_vs_null_a_ci}}) and Lynceus by {{lynceus_phishing_calibrated_llm_vs_null_a_signed}} ({{lynceus_phishing_calibrated_llm_vs_null_a_ci}}). At its default threshold, Lynceus even caught more rewritten phishing ({{lynceus_phishing_native_llm_vs_null_a_signed}} points). The synonym swap cost a few points. Simply converting HTML emails to plain text lowered Lynceus's detection from {{lynceus_phishing_native_null_a_vs_orig_a_pct}} to {{lynceus_phishing_native_null_a_vs_orig_b_pct}}.
 
-Under this protocol, faithful one-pass paraphrasing does not weaken these layers; the message format matters more than the wording. The result does not cover adaptive attackers, larger models or commercial filters.
+Under this protocol, the wording of a faithful paraphrase is not what weakens these filters; the format of the message matters far more. Adaptive attackers, larger models and commercial filters remain outside our scope.
 
 ## 1. Introduction
 
-Large language models (LLMs) can rewrite an email in seconds while keeping its meaning. For phishing this raises a practical question: do the static filters that still guard many mailboxes rely on wording that a paraphrase removes? Earlier studies report that LLM rewriting lowers detection by SpamAssassin, commercial filters and machine-learning detectors [1]–[3].
+Phishing works because people act on messages that look routine. One long-standing defence is to catch what many scams share: clumsy phrasing, odd spelling, familiar wording. Large language models (LLMs) change that. They can turn an awkward scam into fluent text in seconds, at almost no cost. Earlier studies report that LLM rewriting lowers detection by SpamAssassin, commercial filters and machine-learning detectors [1]–[3].
 
-We study the simplest version of this threat: an attacker who takes existing phishing emails and asks a local, open-weight model to rewrite each one once, with a neutral instruction and no feedback from any filter. We ask: **how much does detection by static email-security layers drop, and which layer accounts for the loss?** We also ask whether any drop is caused by the LLM rewrite itself rather than by re-encoding or by any change of words, and whether the rewrites stay valid (same intent, label and links).
+Those reports leave a question that we found surprisingly hard to answer from the literature. When detection drops, is it the new wording that causes it, or something else that changes along the way? The format of the message might change, a link might be lost, or the request might be different. We study the simplest version of the threat. An attacker takes existing phishing emails and asks a local, open-weight model to rewrite each one once, with a neutral instruction and no feedback from any filter.
 
-Our contribution is a measurement with controls, not a new attack or a new detector. Ferrell et al. [1] measured machine-learning detectors on rephrased emails. Beyond that study, we:
-- test static rule-based layers;
-- require every rewrite to keep its links and numbers;
-- separate the effect of the wording from that of the plain-text format.
+Our research question is: **how much does detection by static email-security layers drop, and which layer accounts for the loss?** We also check whether any drop comes from the LLM itself, rather than from re-encoding or from changing words at all, and whether the rewrites still say the same thing.
 
-[AUTHORS: confirm this against the full text of [1].]
+Our contribution is a careful measurement, not a new attack or a new detector. Ferrell et al. [1] measured machine-learning detectors on rephrased emails. We go further in three ways: we test static, rule-based layers; we require every rewrite to keep its links and numbers; and we separate the effect of the wording from the effect of the plain-text format.
 
 ## 2. Related work
 
-Ferrell et al. [1] prompted three LLMs to rephrase phishing and safe emails. Rephrasing lowered the accuracy of existing detectors: by 3–4% for BERT-based models and by 8–20% for Word2Vec and stylometric ones. Retraining on rephrased emails restored accuracy.
+Ferrell et al. [1] asked three LLMs to rephrase phishing and safe emails, then tested existing detectors on the results. Accuracy fell by 3–4% for BERT-based models and by 8–20% for Word2Vec and stylometric models, and retraining on rephrased emails restored it.
 
-Josten and Weis [2] modified spam with GPT-3.5 Turbo and report that SpamAssassin misclassified up to 73.7% of the modified spam as legitimate, against at most 0.4% for a dictionary-replacement attack. Afane et al. [3] report declines for Gmail, SpamAssassin, Proofpoint and classical classifiers on LLM-rephrased phishing.
+Josten and Weis [2] rewrote spam with GPT-3.5 Turbo. SpamAssassin let up to 73.7% of the modified spam through as legitimate, while a simple dictionary-replacement attack succeeded at most 0.4% of the time. Afane et al. [3] report declines for Gmail, SpamAssassin, Proofpoint and classical classifiers on LLM-rephrased phishing.
 
-We ask how much of such a drop remains when the rewrite must keep the links, numbers and request and the format is held fixed, and which layer it comes from. [AUTHORS: this summary is from the three abstracts; check it against the full papers.]
+Together, these studies show that rewriting can hurt detection. They leave open how much of the drop survives when the rewrite must keep the message's links, numbers and request, and when the format is held fixed. They also leave open which part of a detection pipeline is responsible.
 
 ## 3. Method
 
-The protocol was fixed before any rewritten email was scored (tag `protocol-freeze-v1`). Every change is listed in `DEVIATIONS.md`.
+We fixed the full protocol before any rewritten email was scored (git tag `protocol-freeze-v1`), and logged every later change in `DEVIATIONS.md`. Scoring and analysis ran in a Docker container with networking switched off. A local model server on the same computer produced the rewrites, so no email text ever left the machine.
 
-**Changes from our proposal.** Three changes were made to fit the time available:
-- one generator instead of two or three;
-- Lynceus, which includes URL rules, instead of a separate URL layer;
-- an exact rule-and-token accounting instead of a list of detections that depend on content rules alone. Scoring and analysis ran in a container with networking disabled. Rewriting ran on the same machine against a local model server, so no email text left the machine.
+Compared with our proposal, we made three changes to fit the time available. We used one generator instead of two or three. Lynceus, which includes URL rules, replaced a separate URL layer. And an exact rule-and-word accounting replaced the planned list of content-only detections.
 
 ### 3.1 Data
 
-Phishing emails come from the Nazario phishing corpus (CC BY 4.0) [4], files collected from 2005 to 2022. To keep the phishing class human-written, we excluded messages dated on or after 30 November 2022, the public release of ChatGPT [5]. Legitimate emails come from the SpamAssassin public corpus (easy_ham, easy_ham_2, hard_ham) [6]. Raw files are pinned by SHA-256.
+Phishing emails come from the Nazario phishing corpus [4] (CC BY 4.0), collected between 2005 and 2022. To keep this class human-written, we dropped messages dated on or after 30 November 2022, the day ChatGPT was released [5]. Legitimate emails come from the SpamAssassin public corpus [6] (easy_ham, easy_ham_2 and hard_ham). Every raw file is pinned by its SHA-256 hash.
 
-From {{phishing_read}} phishing and {{ham_read}} legitimate messages, we removed messages outside the study's text-only scope:
-- {{phishing_non_text_part}} and {{ham_non_text_part}} with attachments or other non-text parts;
-- {{phishing_not_english}} and {{ham_not_english}} not identified as English by langdetect [7];
+We started from {{phishing_read}} phishing and {{ham_read}} legitimate messages, and kept only English text emails. That removed:
+- {{phishing_non_text_part}} phishing and {{ham_non_text_part}} legitimate messages with attachments or other non-text parts;
+- {{phishing_not_english}} and {{ham_not_english}} that langdetect [7] did not identify as English;
 - {{phishing_empty}} and {{ham_empty}} with an empty body;
-- {{phishing_after_cutoff}} phishing messages after the cutoff and {{phishing_date_unknown}} with no usable date.
+- {{phishing_after_cutoff}} phishing messages sent after the cutoff, and {{phishing_date_unknown}} with no usable date.
 
-We removed personal data: email local parts, phone numbers, and recipients' names. We then dropped near-duplicates ({{phishing_near_duplicate}} and {{ham_near_duplicate}}): messages whose 5-word phrases overlap by 80% or more (Jaccard similarity). This left {{phishing_kept}} phishing and {{ham_kept}} legitimate messages.
+We then removed personal data: the local part of every address, phone numbers and recipients' names. We also dropped near-duplicates, meaning messages that share at least 80% of their five-word phrases ({{phishing_near_duplicate}} phishing, {{ham_near_duplicate}} legitimate). This left {{phishing_kept}} phishing and {{ham_kept}} legitimate emails.
 
-Messages sharing at least half of their 5-word phrases were grouped into template clusters. Whole clusters were assigned at random (fixed seed) to train, dev, test and pilot, so no campaign template appears in two splits. The test split holds {{phishing_test}} phishing and {{ham_test}} legitimate messages.
+Phishing campaigns reuse templates. So we grouped messages that share at least half of their five-word phrases into clusters, and assigned whole clusters at random to the training, development, test and pilot splits. No template appears in two splits. The test split holds {{phishing_test}} phishing and {{ham_test}} legitimate emails.
 
-### 3.2 Conditions
+### 3.2 Four versions of every email
 
-Every test message is scored in four conditions (a paired design). The headers never change; only the body does. A 4-billion-parameter model cannot rewrite HTML reliably, so it rewrites the body as plain text: the plain part, or the visible text of the HTML with each link written out as `<URL>`.
+We scored every test email in four versions, so each message is only ever compared with itself. The headers never change; only the body does. A model with four billion parameters cannot rewrite HTML reliably, so it works on plain text: the email's plain part, or the visible text of its HTML with every link written out as `<URL>`.
 
-- **orig:** the message unchanged.
-- **null-A:** the plain-text body, unchanged. It differs from orig only in format, so comparing the rewrite with null-A isolates the wording. orig versus null-A shows the effect of the format itself.
-- **lex:** the null-A text with WordNet synonyms [8], read through NLTK [9], swapped in until {{lex_dose}} of the words have changed, the median change made by the model on the pilot. Links, addresses and placeholders are untouched. This tests whether *any* rewording of that size lowers detection.
-- **llm:** one paraphrase of the null-A text by `gemma3:4b` [10], run locally through Ollama [11] with temperature 0 and a fixed seed. The prompt was: *"Rewrite the following email in your own words. Keep every link, name, number and the requested action unchanged. Output only the rewritten email text."* It never mentions filters or detection, and the model received no feedback. Refusals were counted, not worked around.
+- **orig** is the email as received.
+- **null-A** is the plain-text body with nothing else changed. It differs from orig only in format. Comparing the rewrite with null-A therefore isolates the wording, and comparing null-A with orig measures the format itself.
+- **lex** is the null-A text after a dictionary synonym swap, using WordNet [8] through NLTK [9]. We swapped words until {{lex_dose}} of them had changed, the median change the model made on the pilot. Links, addresses and placeholders were never touched. This version answers whether *any* rewording of that size lowers detection.
+- **llm** is one paraphrase of the null-A text by gemma3:4b [10], run locally through Ollama [11] at temperature 0 with a fixed seed. The prompt was: *"Rewrite the following email in your own words. Keep every link, name, number and the requested action unchanged. Output only the rewritten email text."* It never mentions filters or detection, and the model received no feedback. We counted refusals and did not work around them.
 
-We rewrote test messages in a fixed random order until 200 rewrites per class passed the comparability gates (3.3). The stopping rule looked only at the gates, never at any detector.
+We rewrote test emails in a fixed random order until 200 rewrites per class had passed the checks below. The stopping rule looked only at those checks, never at any detector.
 
-### 3.3 Comparability of rewrites
+### 3.3 Is the rewrite still the same email?
 
-A rewrite enters the analysis only if, compared with its null-A text:
-- it keeps the same set of links, numbers, addresses and placeholders, ignoring formatting such as "2,500" versus "2500";
-- its length is between half and twice the original;
-- it is still English;
-- it adds no refusal or comment of its own.
+A rewrite entered the analysis only if, compared with its null-A text, it:
+- kept the same set of links, numbers, addresses and placeholders, ignoring formatting such as "2,500" against "2500";
+- stayed between half and twice the original length;
+- was still in English;
+- added no refusal or comment of its own.
 
-These gates were fixed on a 53-message pilot ({{pilot_passed}} of 53 passed) before the main run. Messages that failed are counted and compared with those that passed.
+We fixed these gates on a 53-message pilot ({{pilot_passed}} of 53 passed) before the main run. We compare the emails that failed them with those that passed.
 
-For 30 rewrite pairs (15 per class), a second local model (llama3.2:3b [12], a different family from the generator) judged whether the rewrite keeps the requested action, the target and entities, the urgency, and the label. A human then read every pair and corrected any judgment they disagreed with: {{judge_checks}} We report the share of pairs judged equivalent on all four questions ({{judge_equivalent_rate}}). This is a check of the gates by a model and a human reader, not an independent two-rater audit.
+Gates check facts, not meaning. For meaning, a second local model judged 30 rewrite pairs (15 per class). It was llama3.2:3b [12], from a different model family than the generator. For each pair it answered four questions: does the rewrite keep the requested action, the target and entities, the urgency, and the category (phishing or legitimate)? A human then read every pair and corrected any answer they disagreed with.
 
 ### 3.4 Detectors
 
-All three layers are static: fixed rules or a fixed model, with no learning from the messages they score. Each returns a score, a flag and the evidence behind it.
+All three layers are static: fixed rules, or a frozen model that does not learn from the emails it scores.
 
-- **L1:** {{spamassassin_version}} [13], with its shipped rules, local tests only, and Bayes and auto-learning off.
-- **L2, TF-IDF with logistic regression** [14]: trained only on the train split ({{phishing_train}} phishing, {{ham_train}} legitimate), with its regularisation chosen on dev (C = {{l2_C}}, dev AUC {{l2_dev_auc}}), then frozen. It reads the subject and visible body text.
-- **L4, Lynceus:** the first author's own rule-based phishing detector ({{lynceus_version}}), frozen before any rewrite was scored. We use its message engine unchanged, except that its Windows-only sandbox launcher is replaced by a subprocess inside our offline container. Its score is the risk Lynceus computes from the rules that fired, including below its own warning line. Because we evaluate our own tool, its results are reported under the same controls as the other layers. The first author designed and directed Lynceus before this study; Claude Code wrote its code and rules under that direction (`LYNCEUS_NOTES.md`). Its signal comes mostly from links, sender and HTML structure, plus one rule on urgent and credential-requesting phrases.
+- **SpamAssassin** ({{spamassassin_version}}) [13], with its shipped rules, local tests only, and its Bayesian learning switched off.
+- **A TF-IDF classifier with logistic regression** [14], trained only on the training split ({{phishing_train}} phishing, {{ham_train}} legitimate). We chose its one setting on the development split (C = {{l2_C}}, AUC {{l2_dev_auc}}) and then froze it. It reads the subject and the visible body text.
+- **Lynceus** ({{lynceus_version}}), a rule-based phishing detector that the first author developed before this study, with AI assistance for the code. We use its message engine unchanged, and froze it before any rewrite was scored. Only its Windows-specific sandbox launcher was replaced, so it could run in our offline container. Its signal comes mostly from links, the sender and HTML structure, plus one rule for urgent, credential-requesting phrases. Because we are evaluating our own tool, it went through exactly the same controls as the other layers.
 
-Each layer has two operating points: its native one, and a threshold fixed on dev originals so that at most 1% of legitimate dev emails are flagged (SpamAssassin {{spamassassin_threshold}}, TF-IDF {{tfidf_lr_threshold}}, Lynceus {{lynceus_threshold}}). Neither was changed after rewritten emails were scored.
+We used each layer at two operating points: its own default, and a threshold fixed on the development split so that at most 1% of legitimate emails are flagged (SpamAssassin {{spamassassin_threshold}}, TF-IDF {{tfidf_lr_threshold}}, Lynceus {{lynceus_threshold}}). Neither was touched after rewritten emails were scored.
 
 ### 3.5 Analysis
 
-Every message is compared with itself in two conditions. The **primary contrast is llm versus null-A**. We also report lex versus null-A, llm versus lex, and null-A versus orig.
+Our main comparison is the LLM rewrite against null-A, because the two differ only in wording. We also compare the synonym swap with null-A, the rewrite with the synonym swap, and null-A with the original.
 
 For each layer, class and operating point, we report:
 - the detections lost and gained;
-- the net change in percentage points, with a 95% bootstrap confidence interval [15] (10,000 resamples of whole template clusters, fixed seed);
-- an exact McNemar test [16];
-- the mean change in score, with its interval.
+- the net change in percentage points, with a 95% confidence interval from a bootstrap [15] that resamples whole template clusters (10,000 resamples, fixed seed);
+- an exact McNemar test [16].
 
-The confirmatory test is phishing, at the calibrated threshold, llm versus null-A: one test per layer, Holm-adjusted [17]. Everything else is descriptive.
+The confirmatory test is phishing at the calibrated threshold, rewrite against null-A: one test per layer, with a Holm correction [17]. Everything else is descriptive. We read an interval that excludes zero as a change, an interval inside ±2 points as "no change larger than 2 points", and anything else as inconclusive. We repeat every result on all rewrites, including those that failed the gates.
 
-An interval that excludes zero is read as a change. One inside ±2 points is read as "no change larger than 2 points". Anything else is inconclusive. A message with a scoring error on either side is excluded from that layer's contrast and counted. Every result is repeated on all rewrites, not only those passing the gates.
-
-We then separate *what moved* from *why*. SpamAssassin's score is a sum of rule points, the classifier's logit is a sum of token contributions, and Lynceus lists the rules that fired, so we can show which rules and words account for a change. A cause is claimed only for a rule-based edit of one property: the plain-text copy, which changes only the format. Everything else is "consistent with".
+Finally, we keep an observed difference apart from its cause. SpamAssassin's score is a sum of rule points, the classifier's score is a sum of word contributions, and Lynceus lists the rules that fired. So we can show exactly which rules and words moved. We claim a cause only where a rule-based edit, with no model involved, changed one property. The plain-text copy is such an edit, of the format. Everything else we describe as "consistent with".
 
 ## 4. Results
 
-### 4.1 Rewrites
+### 4.1 The rewrites
 
-We rewrote {{rewritten_total}} test emails. Another {{gates_phishing_not_rewritten_too_long}} phishing and {{gates_ham_not_rewritten_too_long}} legitimate emails were too long to rewrite; they are counted, not analysed. Every gate was passed by {{gates_phishing_passed}} of {{gates_phishing_rewritten}} phishing rewrites and {{gates_ham_passed}} of {{gates_ham_rewritten}} legitimate ones (Table 2). The model refused in {{refusals}} case. Most failures were rewrites that dropped links or numbers.
+We rewrote {{rewritten_total}} test emails. Another {{gates_phishing_not_rewritten_too_long}} phishing and {{gates_ham_not_rewritten_too_long}} legitimate emails were too long to rewrite; we counted them but did not analyse them. Of the rewrites, {{gates_phishing_passed}} of {{gates_phishing_rewritten}} phishing and {{gates_ham_passed}} of {{gates_ham_rewritten}} legitimate ones passed every gate (Table 2).
 
-In the 30-pair meaning check, the accepted judgments say the rewrite kept:
+The model refused in {{refusals}} case. Most failures were rewrites that dropped a link or a number. The emails that passed were shorter than those that did not: for phishing, a median of {{sel_phishing_kept_words}} against {{sel_phishing_discarded_words}} words, and {{sel_phishing_kept_urls}} against {{sel_phishing_discarded_urls}} links. Our analysed pairs therefore lean towards short emails.
+
+In the meaning check, the accepted judgments say the rewrite kept:
 - the requested action in {{judge_yes_same_action}} of pairs;
 - the target, links and names in {{judge_yes_same_target}};
 - the urgency in {{judge_yes_same_urgency}};
-- the category (phishing or legitimate) in only {{judge_yes_same_label}}.
+- the category in only {{judge_yes_same_label}}.
 
-Only {{judge_equivalent_rate}} were equivalent on all four. {{judge_checks}}
+{{judge_equivalent_rate}} were equivalent on all four. {{judge_checks}} We return to the category result in the discussion.
 
-Kept rewrites came from shorter emails than discarded ones. For phishing, the medians were {{sel_phishing_kept_words}} against {{sel_phishing_discarded_words}} words, and {{sel_phishing_kept_urls}} against {{sel_phishing_discarded_urls}} links. The analysed pairs therefore over-represent short emails.
+### 4.2 The wording of the rewrite
 
-### 4.2 The LLM wording
+Table 1 shows how often each layer flagged each version. Against the plain-text copy, the rewrite changed phishing detection at the calibrated thresholds by:
+- {{spamassassin_phishing_calibrated_llm_vs_null_a_signed}} points for SpamAssassin ({{spamassassin_phishing_calibrated_llm_vs_null_a_ci}});
+- {{tfidf_lr_phishing_calibrated_llm_vs_null_a_signed}} for TF-IDF ({{tfidf_lr_phishing_calibrated_llm_vs_null_a_ci}});
+- {{lynceus_phishing_calibrated_llm_vs_null_a_signed}} for Lynceus ({{lynceus_phishing_calibrated_llm_vs_null_a_ci}}).
 
-Table 1 gives the share flagged in each condition. Against the plain-text copy, the rewrite changed phishing detection by:
-- {{spamassassin_phishing_calibrated_llm_vs_null_a_signed}} points for SpamAssassin {{spamassassin_phishing_calibrated_llm_vs_null_a_ci}};
-- {{tfidf_lr_phishing_calibrated_llm_vs_null_a_signed}} for TF-IDF {{tfidf_lr_phishing_calibrated_llm_vs_null_a_ci}};
-- {{lynceus_phishing_calibrated_llm_vs_null_a_signed}} for Lynceus {{lynceus_phishing_calibrated_llm_vs_null_a_ci}}.
+The Holm-adjusted p-values were {{spamassassin_phishing_calibrated_llm_vs_null_a_holm_p}}, {{tfidf_lr_phishing_calibrated_llm_vs_null_a_holm_p}} and {{lynceus_phishing_calibrated_llm_vs_null_a_holm_p}}. For SpamAssassin and TF-IDF, the intervals rule out a change larger than two points in either direction.
 
-The Holm-adjusted p-values were {{spamassassin_phishing_calibrated_llm_vs_null_a_holm_p}}, {{tfidf_lr_phishing_calibrated_llm_vs_null_a_holm_p}} and {{lynceus_phishing_calibrated_llm_vs_null_a_holm_p}}. For SpamAssassin and TF-IDF, the intervals exclude a change larger than two points in either direction.
+At its calibrated threshold, Lynceus flagged only {{lynceus_phishing_calibrated_llm_vs_null_a_a_pct}} of plain-text phishing to begin with: a floor effect. At its default threshold, it flagged *more* phishing after the rewrite: {{lynceus_phishing_native_llm_vs_null_a_a_pct}} rose to {{lynceus_phishing_native_llm_vs_null_a_b_pct}} ({{lynceus_phishing_native_llm_vs_null_a_signed}} points, {{lynceus_phishing_native_llm_vs_null_a_ci}}).
 
-At its calibrated threshold, Lynceus flagged only {{lynceus_phishing_calibrated_llm_vs_null_a_a_pct}} of plain-text phishing to begin with: a floor effect. At its native threshold, it flagged more phishing after rewriting: {{lynceus_phishing_native_llm_vs_null_a_a_pct}} rose to {{lynceus_phishing_native_llm_vs_null_a_b_pct}} ({{lynceus_phishing_native_llm_vs_null_a_signed}} points, {{lynceus_phishing_native_llm_vs_null_a_ci}}).
+On legitimate mail, no layer's false positives rose beyond the margin. The one inconclusive case was TF-IDF ({{tfidf_lr_ham_calibrated_llm_vs_null_a_signed}} points, {{tfidf_lr_ham_calibrated_llm_vs_null_a_ci}}).
 
-On legitimate mail, no layer's false positives rose beyond the margin. The one inconclusive case was TF-IDF: {{tfidf_lr_ham_calibrated_llm_vs_null_a_signed}} points {{tfidf_lr_ham_calibrated_llm_vs_null_a_ci}}.
-
-Adding the rewrites that failed the gates did not change the picture. For example, SpamAssassin changed by {{all_spamassassin_phishing_calibrated_llm_vs_null_a_signed}} points {{all_spamassassin_phishing_calibrated_llm_vs_null_a_ci}} on all {{all_spamassassin_phishing_calibrated_llm_vs_null_a_n}} phishing rewrites.
+Adding back the rewrites that failed the gates changes nothing. SpamAssassin, for example, moved by {{all_spamassassin_phishing_calibrated_llm_vs_null_a_signed}} points ({{all_spamassassin_phishing_calibrated_llm_vs_null_a_ci}}) across all {{all_spamassassin_phishing_calibrated_llm_vs_null_a_n}} phishing rewrites.
 
 ### 4.3 Rewording without an LLM, and the format
 
-The synonym swap lowered phishing detection slightly, at native thresholds:
-- {{spamassassin_phishing_native_lex_vs_null_a_signed}} points for SpamAssassin {{spamassassin_phishing_native_lex_vs_null_a_ci}};
-- {{tfidf_lr_phishing_native_lex_vs_null_a_signed}} for TF-IDF {{tfidf_lr_phishing_native_lex_vs_null_a_ci}};
-- {{lynceus_phishing_native_lex_vs_null_a_signed}} for Lynceus {{lynceus_phishing_native_lex_vs_null_a_ci}}.
+The synonym swap did lower phishing detection a little at the default thresholds:
+- {{spamassassin_phishing_native_lex_vs_null_a_signed}} points for SpamAssassin ({{spamassassin_phishing_native_lex_vs_null_a_ci}});
+- {{tfidf_lr_phishing_native_lex_vs_null_a_signed}} for TF-IDF ({{tfidf_lr_phishing_native_lex_vs_null_a_ci}});
+- {{lynceus_phishing_native_lex_vs_null_a_signed}} for Lynceus ({{lynceus_phishing_native_lex_vs_null_a_ci}}).
 
-The LLM rewrite was flagged more often than the synonym swap by SpamAssassin ({{spamassassin_phishing_native_llm_vs_lex_signed}} points, {{spamassassin_phishing_native_llm_vs_lex_ci}}) and by Lynceus ({{lynceus_phishing_native_llm_vs_lex_signed}}, {{lynceus_phishing_native_llm_vs_lex_ci}}).
+The LLM rewrite was actually flagged *more* often than the synonym swap, by SpamAssassin ({{spamassassin_phishing_native_llm_vs_lex_signed}} points, {{spamassassin_phishing_native_llm_vs_lex_ci}}) and by Lynceus ({{lynceus_phishing_native_llm_vs_lex_signed}}, {{lynceus_phishing_native_llm_vs_lex_ci}}).
 
-The largest change came from the format alone. Turning the original into its plain-text copy:
-- lowered Lynceus's native detection from {{lynceus_phishing_native_null_a_vs_orig_a_pct}} to {{lynceus_phishing_native_null_a_vs_orig_b_pct}} ({{lynceus_phishing_native_null_a_vs_orig_signed}} points, {{lynceus_phishing_native_null_a_vs_orig_ci}});
-- changed SpamAssassin's by {{spamassassin_phishing_native_null_a_vs_orig_signed}} points {{spamassassin_phishing_native_null_a_vs_orig_ci}};
-- did not change TF-IDF, which reads only the visible text.
+The biggest change in the whole study came from the format alone. Turning the original email into its plain-text copy lowered Lynceus's default detection from {{lynceus_phishing_native_null_a_vs_orig_a_pct}} to {{lynceus_phishing_native_null_a_vs_orig_b_pct}} ({{lynceus_phishing_native_null_a_vs_orig_signed}} points, {{lynceus_phishing_native_null_a_vs_orig_ci}}). It changed SpamAssassin's by {{spamassassin_phishing_native_null_a_vs_orig_signed}} points ({{spamassassin_phishing_native_null_a_vs_orig_ci}}). TF-IDF, which reads only the visible text, did not move.
 
-### 4.4 What moved
+### 4.4 What moved, and why
 
-Under the LLM rewrite, the accounting shows only small changes for SpamAssassin (a few rules for misspelled brand names stopped firing) and TF-IDF (slight shifts on common words). Lynceus's social-engineering phrase rule started to fire in {{lynceus_social_starts}} of rewritten phishing emails. That is consistent with the model adding urgent, credential-requesting wording, a cause we did not test. The format effect, by contrast, is causal by design.
+Under the LLM rewrite, the accounting shows only small changes for SpamAssassin and TF-IDF. For SpamAssassin, a few rules for misspelled brand names stopped firing; for TF-IDF, common words shifted slightly.
 
-**Table 1.** Share of messages flagged (%) at the dev-calibrated threshold, gate-passed pairs, per condition; the primary contrast (llm vs null-A) with its 95% cluster-bootstrap CI. The Holm p is given for the confirmatory family only.
+Lynceus's social-engineering phrase rule started to fire on {{lynceus_social_starts}} of rewritten phishing emails. That is consistent with the model adding urgent, credential-requesting wording, although we did not test that cause.
+
+The format effect is different. Because the plain-text copy changes nothing but the format, that effect is causal by design.
+
+**Table 1.** Share of emails flagged (%) at the calibrated threshold, gate-passed pairs, for each version. The last columns give the main comparison (rewrite against plain-text copy) with its 95% cluster-bootstrap confidence interval, and the Holm p for the three confirmatory tests.
 
 {{table_main}}
 
-**Table 2.** Rewrites per class, gate passes, and failures per gate. A rewrite can fail several gates.
+**Table 2.** Rewrites per class, how many passed every gate, and how many failed each gate. A rewrite can fail several gates.
 
 {{table_gates}}
 
 ## 5. Discussion and limitations
 
-Under this protocol, a faithful single-pass paraphrase by a small local model did not make phishing harder to detect for any of the three static layers. For Lynceus, it made phishing slightly easier to detect. This is a negative result for the feared effect, with a simple reading. These layers draw their signal from links, headers, HTML structure and generic phishing vocabulary. A rewrite that must keep the links, numbers and request keeps most of that signal. A synonym swap removed some vocabulary and cost a few points; removing the HTML structure cost much more.
+Under our protocol, a faithful one-pass paraphrase by a small local model did not make phishing harder to detect for any of the three static layers; for Lynceus, it made phishing slightly easier to detect. That is a negative result for the effect we set out to measure, and it has a simple explanation.
 
-This differs from the drops reported in [1]–[3]. Our setting differs in ways that may explain the gap; we tested none of them:
-- our SpamAssassin ran without its Bayesian component, which is central to [2];
-- we used a 4-billion-parameter local model, not GPT-3.5 Turbo;
+These layers draw much of their signal from links, headers, HTML structure and familiar phishing vocabulary. A rewrite that must keep the links, numbers and request keeps most of that signal, and fluent LLM prose may even add vocabulary. A crude synonym swap removed some of it and cost a few points. Stripping the HTML structure cost far more.
+
+Our result differs from the large drops reported in [1]–[3], and the settings differ in ways that could explain it. We tested none of these differences:
+- our SpamAssassin ran without the Bayesian component that is central to [2];
+- we used a four-billion-parameter local model, not GPT-3.5 Turbo;
 - we rewrote phishing rather than spam;
 - every analysed rewrite had to keep its links and numbers.
 
-What we add beyond [1] is a paired, per-layer test for static rule-based layers that separates wording from format.
+What this study adds beyond [1] is a paired, layer-by-layer test of static rule-based defences that separates the wording from the format.
 
-Alternative explanations remain:
-- **comparability is not established for the category of the message.** The meaning check judged only {{judge_yes_same_label}} of pairs to keep their category, which would mean many rewrites no longer read as their original. The detectors, however, scored the rewrites much like the originals. With one small judge model and 30 pairs, we cannot tell whether the rewrites or the judge are at fault [AUTHORS: revisit if the check is revised];
-- the analysed rewrites are those faithful enough to pass the gates, which favours short emails;
-- one small model with a neutral prompt is not an adaptive attacker;
-- the TF-IDF classifier sits near its ceiling, and Lynceus near its floor at the calibrated threshold, which limits what those contrasts can show.
+The main open question is comparability. The meaning check judged only {{judge_yes_same_label}} of pairs to keep their category, which would mean many rewrites no longer read like their original. The detectors disagree. The TF-IDF classifier, trained only on human-written emails, still flagged {{tfidf_lr_phishing_calibrated_llm_vs_null_a_b_pct}} of rewritten phishing and only {{tfidf_lr_ham_calibrated_llm_vs_null_a_b_pct}} of rewritten legitimate mail. With one small judge model and 30 pairs, we cannot tell which signal is right, so we report both.
+
+Two further points limit how far the result reaches. The emails that passed the gates are shorter than the rest. And the TF-IDF classifier sits close to its ceiling, while Lynceus sits close to its floor at the calibrated threshold, which limits what those two comparisons can show.
 
 The study also has deliberate limits:
 - The attacker is non-adaptive and makes one pass, which underestimates a determined attacker.
-- The corpora are old (legitimate mail from 2002 to 2003, phishing from 2005 to 2022), so "human versus LLM" style is mixed with era; pairing controls content, not era.
-- We use one small open-weight model, not frontier models.
-- SpamAssassin run offline is not a commercial filter; we test static layers only, without sender reputation, DNS or authentication checks.
-- Text-only, English-only messages.
-- We evaluate our own tool.
-- The meaning check covers only 30 pairs, judged by a small local model and checked by one author who saw the model's answers first.
-- Rewrites run on plain text, so the HTML structure of the original is not kept; null-A carries the same format, so the comparison is fair, but it is not the attacker's full message.
+- The corpora are old: legitimate mail from 2002–2003, phishing from 2005–2022. Writing style is therefore mixed with era. Pairing controls content, not era.
+- We used one small open-weight model rather than frontier models.
+- SpamAssassin running offline is not a commercial filter, and we tested only static layers, without sender reputation, DNS or authentication checks.
+- All emails were text-only and in English.
+- We evaluated our own tool.
+- Our meaning check covers only 30 pairs.
 
 ## Declarations
 
-**Declaration of Generative AI and AI-Assisted Technologies.** [AUTHORS: confirm against AI_LOG.md; the handbook (p. 13) requires tools, uses and verification.] We used Claude Code (Anthropic; Claude Opus 5.5 and Claude Sonnet 5.5) to write the study code, tests and documentation and to draft this manuscript under our direction. Claude Code also wrote the code of Lynceus, under the first author's direction. Within the experiment, two local models ran on our own machine: gemma3:4b (Google) produced the rewrites under study, and llama3.2:3b (Meta) pre-filled the 30-pair meaning check. Claude Code never saw email text. We tested the code, re-ran the analyses, checked every number against the result files, opened and verified every source, and checked the meaning judgments ourselves.
+**Declaration of Generative AI and AI-Assisted Technologies.** We used Claude Code (Anthropic) as a programming and writing assistant. It helped us write and test the data pipeline and analysis scripts, find and open sources, and draft and edit this text. Lynceus, the first author's detector, was also built with Claude Code's help before this study.
 
-**Ethics and model licence.** We only rewrote existing phishing emails from a public corpus, offline. Nothing was sent, and the rewrites are not published. The generator's use policy (Gemma Prohibited Use Policy) bars generating content for phishing, and makes no research exception. We used it for defensive evaluation only, and we declare that choice here [18]. [AUTHORS: confirm wording.]
+Two local models were part of the experiment itself: gemma3:4b produced the rewrites under study, and llama3.2:3b pre-filled the meaning-check sheet.
 
-**Data and code.** Code, configurations, manifests, hashes and aggregate results: https://github.com/sodik-tursunboev/llm-phishing-study [AUTHORS: make it reviewer-accessible before submitting]. Raw corpora are not redistributed; they are re-downloaded and verified by hash. Raw rewrites are available to reviewers on request.
+We designed the study and took every methodological decision. We ran the experiments on our own computer, checked the meaning judgments, opened and verified every source, and checked every reported number against the result files. Every use of AI is logged in `AI_LOG.md` in our repository.
 
-**Contributions.** Sodik Tursunboev designed and ran the study, and authored Lynceus before the study began (AI-assisted; see `LYNCEUS_NOTES.md`). Kavish Chaudhari is the project partner, who checked the meaning judgments of the 30 rewrite pairs and verified every reference and every number against the result files. [AUTHORS: confirm once done.] Kavish did not write Lynceus. {{judge_checks}} Details in `CONTRIBUTIONS.md`.
+**Ethics and model licence.** We only rewrote existing phishing emails from a public corpus, offline. Nothing was sent, no email text left our computer, and the rewrites are not published. The generator's use policy [18] bars generating content for phishing and makes no research exception. We used it only for this defensive evaluation, and we declare that choice here.
 
-**Conflict of interest.** Lynceus is the first author's own tool.
+**Data and code.** Code, configurations, hashes and aggregate results are at https://github.com/sodik-tursunboev/llm-phishing-study. Raw corpora are not redistributed: anyone can download them again and check them against our hashes. Raw rewrites are available to reviewers on request.
+
+**Contributions.**
+- Sodik Tursunboev and Kavish Chaudhari jointly proposed the research question.
+- Sodik led the study: designing the protocol, choosing the data, the detectors and the generator, running the experiments, and writing. Sodik developed Lynceus before the study.
+- Kavish checked the 30 meaning-check pairs, verified every reference, and checked the reported numbers against the result files.
+- Both authors interpreted the results and revised the manuscript.
+
+**Conflict of interest.** Lynceus is the first author's own tool. It went through the same controls as the other layers.
 
 ## References
 

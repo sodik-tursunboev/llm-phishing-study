@@ -81,7 +81,7 @@ def run():
     print(f"wrote {SHEET}: {len(rows)} pairs, {blanks} answers left blank by the model")
 
 
-AUTHORS = {"sodik": "Sodik Tursunboev", "kavish": "Kavish"}  # what a checker types -> name in the paper
+AUTHORS = {"sodik": "Sodik Tursunboev", "kavish": "Kavish Chaudhari"}  # typed name -> name in the paper
 ENTRY = pathlib.Path("data/judge_entry.json")  # who typed the names in, when it was not the checker
 
 

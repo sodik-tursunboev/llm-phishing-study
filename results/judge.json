@@ -2,7 +2,7 @@
   "pairs": 30,
   "judge": "llama3.2:3b",
   "checked_by": {
-    "Kavish": {
+    "Kavish Chaudhari": {
       "pairs_checked": 30,
       "answers": 120,
       "answers_changed": 0

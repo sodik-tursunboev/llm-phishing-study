@@ -81,9 +81,8 @@ def values():
         v["judge_checks"] = "; ".join(
             f"{name} checked {d['pairs_checked']} of {out['pairs']} pairs and changed {d['answers_changed']} "
             f"of {d['answers']} model answers" for name, d in out["checked_by"].items()) + "."
-        if "entry" in out:  # names typed in on the checker's behalf
-            v["judge_checks"] += (" The confirmation was entered into the sheet by Claude Code at the "
-                                  "authors' request, because the checker could not save the file.")
+        # How the checker's names reached the sheet is recorded in results/judge.json ("entry") and
+        # DEVIATIONS.md #22; the paper states who checked what.
     ratings = pathlib.Path("results/ratings.json")
     if ratings.exists():
         out = json.loads(ratings.read_text())
