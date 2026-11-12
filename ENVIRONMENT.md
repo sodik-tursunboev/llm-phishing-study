@@ -65,6 +65,13 @@ docker run --rm --network none -v "${PWD}:/work" -v llm-phishing-data:/work/data
 docker run --rm --network none -v "${PWD}:/work" llm-phishing-study python -m src.paper.build
 ```
 
+Rewrite with the local model (needs Ollama 0.34.4 on the host with `gemma3:4b` at the pinned digest; this container has network so it can reach the host's Ollama, DEVIATIONS.md #11). Then write the pilot report offline:
+
+```bash
+docker run --rm -v "${PWD}:/work" -v llm-phishing-data:/work/data llm-phishing-study python -m src.rewrite.generate pilot
+docker run --rm --network none -v "${PWD}:/work" -v llm-phishing-data:/work/data llm-phishing-study python -m src.rewrite.pilot
+```
+
 Check command (all tests, offline):
 
 ```bash

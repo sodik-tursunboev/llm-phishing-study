@@ -17,11 +17,21 @@ The research question is unchanged. Reason for every row below: the authors' sco
 | 7 | Paper (11) | research letter of at most 3,000 words | about 2,000 words including the abstract (advice) | None. |
 | 8 | Roles (13) | not set | Sodiq runs the research. Kavish blind-rates the same 30 pairs and, after the draft, verifies every reference and checks each number against the result files. Claude Code prepares the rating sheet and `references/evidence_trail.csv` and never rates or verifies. | None. |
 
+## Authors' decisions recorded before the freeze
+
+| # | Date | Decision | Reason given | What the paper must say |
+|---|---|---|---|---|
+| 10 | 2026-11-11 | Generator G1 is `gemma3:4b` (Ollama, manifest SHA-256 `68ceab7e468a31c988b44d5a4984a0e21f58c4f7158c6ce29c1804babac38df7`), not the MIT-licensed `phi4-mini` that Claude Code proposed | Authors: stronger model; offline research use only | Gemma's Prohibited Use Policy (last modified 21 Feb 2024, https://ai.google.dev/gemma/prohibited_use_policy) bars "Generating content for deceptive or fraudulent activities, scams, phishing, or malware", with no research exception. Declare this and state the safeguards: existing emails only, offline, nothing sent, rewrites never published. |
+
+| 11 | 2026-11-11 | The rewrite stage runs in a container **with** network access, calling the authors' local Ollama 0.34.4 on the host (`host.docker.internal:11434`), instead of a model server on an isolated Docker network | Authors: avoid another 3.5 GB download | The code sends text only to the local Ollama URL and checks the model digest first. Scoring and analysis still run with `--network none`. State that the generation step was local but not network-isolated. |
+| 12 | 2026-11-11 | **Plain-text conditions.** A 4B model cannot rewrite HTML reliably, so it rewrites the visible text, links kept as `<URL>`. Every derived condition (null-A, lex, llm) carries a plain-text body with the original headers. The **primary contrast is llm vs null-A**, where only the wording differs. orig vs null-A is reported as the effect of the plain-text format. | Proposed by Claude Code; authors said start | H2 now reads: null-A measures the format change. It is reported, not required to be zero. Every main result compares with null-A. |
+
 ## Implementation deviations
 
 | # | Date | What | Why | Cost to the claims |
 |---|---|---|---|---|
 | 9 | 2026-11-11 | Corpora are stored in a Docker volume, not in `data/` on the host disk (README section 12) | The host antivirus quarantined `phishing3.mbox`; a volume keeps phishing off the host without changing any security setting | None; hashes are verified in the volume (ENVIRONMENT.md). |
+| 13 | 2026-11-11 | **Bug fix in the PII scrub (pre-freeze).** (a) The placeholder `[NAME]` in address headers is now quoted, because unquoted it is invalid address syntax and Lynceus dropped the whole sender: a made-up test scored 82 without the sender rule, 95 with it. (b) Address headers are matched case-insensitively, so `CC:` and `Reply-to:` are scrubbed too. | Found while testing null-A at M3 | Everything downstream was re-run: data stage, L2 fit, dev scoring and L1/L2 calibration. The Lynceus test-split stability figures in `LYNCEUS_NOTES.md` predate the fix and are re-run at the re-pin. No rewritten data had been scored. |
 
 ## Open questions for the authors
 

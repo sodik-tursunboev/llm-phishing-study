@@ -1,0 +1,1 @@
+Rewrite the following email in your own words. Keep every link, name, number and the requested action unchanged. Output only the rewritten email text.

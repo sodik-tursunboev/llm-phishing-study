@@ -1,0 +1,107 @@
+{
+  "messages": 53,
+  "rewritten": 53,
+  "gate_passed": 19,
+  "failures_by_gate": {
+    "refusal": 0,
+    "meta_text": 7,
+    "urls": 15,
+    "numbers": 24,
+    "entities": 10,
+    "length": 6,
+    "language": 0,
+    "truncated": 0,
+    "too_long": 0
+  },
+  "refusal_rate": 0.0,
+  "seconds_per_rewrite": {
+    "min": 1.24,
+    "p10": 4.79,
+    "median": 15.9,
+    "p90": 52.75,
+    "max": 118.16
+  },
+  "output_tokens": {
+    "min": 20,
+    "p10": 80,
+    "median": 177,
+    "p90": 531,
+    "max": 899
+  },
+  "length_ratio": {
+    "min": 0.149,
+    "p10": 0.763,
+    "median": 1.014,
+    "p90": 1.372,
+    "max": 2.154
+  },
+  "change_fraction_passed": {
+    "min": 0.14,
+    "p10": 0.141,
+    "median": 0.407,
+    "p90": 0.714,
+    "max": 0.758
+  },
+  "detection_rate_on_gate_passed": {
+    "spamassassin phishing orig": {
+      "native": 0.286,
+      "calibrated": 0.071,
+      "n": 14
+    },
+    "spamassassin phishing null_a": {
+      "native": 0.214,
+      "calibrated": 0.071,
+      "n": 14
+    },
+    "spamassassin phishing llm": {
+      "native": 0.286,
+      "calibrated": 0.071,
+      "n": 14
+    },
+    "spamassassin ham orig": {
+      "native": 0.0,
+      "calibrated": 0.0,
+      "n": 5
+    },
+    "spamassassin ham null_a": {
+      "native": 0.0,
+      "calibrated": 0.0,
+      "n": 5
+    },
+    "spamassassin ham llm": {
+      "native": 0.0,
+      "calibrated": 0.0,
+      "n": 5
+    },
+    "tfidf_lr phishing orig": {
+      "native": 1.0,
+      "calibrated": 1.0,
+      "n": 14
+    },
+    "tfidf_lr phishing null_a": {
+      "native": 1.0,
+      "calibrated": 1.0,
+      "n": 14
+    },
+    "tfidf_lr phishing llm": {
+      "native": 1.0,
+      "calibrated": 1.0,
+      "n": 14
+    },
+    "tfidf_lr ham orig": {
+      "native": 0.0,
+      "calibrated": 0.0,
+      "n": 5
+    },
+    "tfidf_lr ham null_a": {
+      "native": 0.0,
+      "calibrated": 0.0,
+      "n": 5
+    },
+    "tfidf_lr ham llm": {
+      "native": 0.0,
+      "calibrated": 0.0,
+      "n": 5
+    }
+  }
+}

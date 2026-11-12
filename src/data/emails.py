@@ -22,8 +22,11 @@ EMAIL_RE = re.compile(r"[\w.+-]+@([\w-]+(?:\.[\w-]+)+)")
 PHONE_RE = re.compile(
     r"(?<![\w/=.-])(?:\+\d{1,3}[ .-]\d{2,4}[ .-]\d{3,4}[ .-]?\d{3,4}|\(?\d{3}\)?[ .-]\d{3}[ .-]\d{4})(?![\w/])"
 )
-ADDRESS_HEADERS = ("From", "To", "Cc", "Reply-To", "Sender", "Delivered-To", "X-Original-To")
-RECIPIENT_HEADERS = ("To", "Cc", "Delivered-To", "X-Original-To")
+ADDRESS_HEADERS = {"from", "to", "cc", "reply-to", "sender", "delivered-to", "x-original-to"}  # lower case
+RECIPIENT_HEADERS = {"to", "cc", "delivered-to", "x-original-to"}
+# In an address header the placeholder must be quoted: an unquoted "[NAME]" is invalid address
+# syntax, and parsers (Lynceus's included) then drop the whole address.
+UNQUOTED_NAME = re.compile(r'(?<!")\[NAME\](?!")')
 
 DetectorFactory.seed = 0  # langdetect is randomised; a fixed seed makes it deterministic
 
@@ -54,6 +57,51 @@ def html_to_text(markup):
     parser = _TextExtractor()
     parser.feed(markup)
     return " ".join(" ".join(parser.parts).split())
+
+
+BLOCK_TAGS = {"p", "br", "div", "tr", "li", "ul", "ol", "table", "h1", "h2", "h3", "h4", "h5", "h6"}
+
+
+class _PlainExtractor(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.parts, self._skip, self._links = [], 0, []  # _links: (href, index where its text starts)
+
+    def handle_starttag(self, tag, attrs):
+        if tag in ("script", "style"):
+            self._skip += 1
+        elif tag in BLOCK_TAGS:
+            self.parts.append("\n")
+        if tag == "a":
+            self._links.append((dict(attrs).get("href") or "", len(self.parts)))
+
+    def handle_endtag(self, tag):
+        if tag in ("script", "style") and self._skip:
+            self._skip -= 1
+        elif tag == "a" and self._links:
+            href, start = self._links.pop()
+            if URL_RE.fullmatch(href) and href not in "".join(self.parts[start:]):
+                self.parts.append(f" <{href}>")  # keep the address a reader would click
+        elif tag in BLOCK_TAGS:
+            self.parts.append("\n")
+
+    def handle_data(self, data):
+        if not self._skip:
+            self.parts.append(data)
+
+
+def html_to_plain(markup):
+    """Plain-text version of an HTML body for rewriting: paragraph breaks kept, and each link's
+    address written after its text as <URL>, so no link is lost when the HTML is dropped."""
+    parser = _PlainExtractor()
+    parser.feed(markup)
+    lines = (" ".join(line.split()) for line in "".join(parser.parts).splitlines())
+    return re.sub(r"\n{3,}", "\n\n", "\n".join(lines)).strip()
+
+
+def plain_body(msg):
+    """The body every derived condition starts from: the plain part, or the HTML as plain text."""
+    return msg["text"] if msg["text"].strip() else html_to_plain(msg["html"])
 
 
 def extract_urls(text, markup):
@@ -118,14 +166,15 @@ def normalise(raw):
     # Recipients are real people; their display names and mailbox names are removed everywhere.
     # Sender display names are removed from headers only: in phishing they are forged brand
     # names that belong to the content we study.
-    pairs = email.utils.getaddresses([v for k, v in headers if k in ADDRESS_HEADERS])
-    recipients = email.utils.getaddresses([v for k, v in headers if k in RECIPIENT_HEADERS])
+    pairs = email.utils.getaddresses([v for k, v in headers if k.lower() in ADDRESS_HEADERS])
+    recipients = email.utils.getaddresses([v for k, v in headers if k.lower() in RECIPIENT_HEADERS])
     body_names = {n for n, _ in recipients if len(n) >= 3} | {
         a.split("@")[0] for _, a in recipients if len(a.split("@")[0]) >= 3
     }
     header_names = body_names | {n for n, _ in pairs if len(n) >= 3}
 
     headers = [(k, scrub(v, header_names)) for k, v in headers]
+    headers = [(k, UNQUOTED_NAME.sub('"[NAME]"', v) if k.lower() in ADDRESS_HEADERS else v) for k, v in headers]
     result = {
         "headers": headers,
         "subject": next((v for k, v in headers if k.lower() == "subject"), ""),

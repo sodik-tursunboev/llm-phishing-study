@@ -3,6 +3,7 @@ accounted for, and the parsing and scrubbing helpers behave as documented."""
 import collections
 import csv
 import email.message
+import email.policy
 
 import pytest
 
@@ -54,8 +55,8 @@ def test_normalise_scrubs_recipient_everywhere_and_sender_in_headers_only():
     raw = (b"From: PayPal <service@example.com>\nTo: Jane Doe <jane@example.com>\nSubject: Hello Jane Doe\n\n"
            b"Dear Jane Doe, PayPal asks you to verify at http://example.com/login\n")
     msg = normalise(raw)
-    assert ("From", "[NAME] <user@example.com>") in msg["headers"]
-    assert ("To", "[NAME] <user@example.com>") in msg["headers"]
+    assert ("From", '"[NAME]" <user@example.com>') in msg["headers"]  # quoted: valid address syntax
+    assert ("To", '"[NAME]" <user@example.com>') in msg["headers"]
     assert msg["subject"] == "Hello [NAME]"
     assert msg["text"] == "Dear [NAME], PayPal asks you to verify at http://example.com/login\n"
     assert msg["urls"] == ["http://example.com/login"]
@@ -68,6 +69,14 @@ def test_render_round_trip_keeps_content():
     again = normalise(render(msg))
     assert {k: again[k] for k in ("subject", "text", "html", "urls")} == {k: msg[k] for k in ("subject", "text", "html", "urls")}
     assert [k for k, _ in again["headers"]][:3] == ["Received", "From", "Subject"]  # original order first
+
+
+def test_scrubbed_sender_still_parses_and_header_case_does_not_matter():
+    raw = b"FROM: Jane Doe <jane@example.com>\nCC: Bob Roe <bob@example.org>\nSubject: hi\n\nHi Bob Roe, see you.\n"
+    msg = normalise(raw)
+    assert msg["text"] == "Hi [NAME], see you.\n"  # the CC recipient's name is found despite "CC:"
+    parsed = email.message_from_bytes(render(msg), policy=email.policy.default)
+    assert parsed["From"].addresses[0].addr_spec == "user@example.com"
 
 
 def test_attachments_are_rejected():
