@@ -9,6 +9,8 @@
 paper/manuscript_filled.md
 # Student IDs: in the PDF only, never in git (README section 4)
 paper/*.local.json
+paper/manuscript.html
+paper/*.pdf
 
 # Python caches
 __pycache__/

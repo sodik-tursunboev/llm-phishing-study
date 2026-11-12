@@ -10,7 +10,7 @@ Declarations true: Kavish verifies each reference and number; both authors read 
 
 *Official topic: The Evasion Capabilities of LLM-Generated Phishing Payloads Against Static Security Architectures*
 
-Sodik Tursunboev, Kavish Chaudhari · Vistula University · Architecture of Computers 2026/27 · Student IDs: {{student_ids}}
+{{student_ids}} · Vistula University · Architecture of Computers 2026/27
 
 ## Abstract
 
@@ -69,12 +69,7 @@ Phishing campaigns reuse templates. So we grouped messages that share at least h
 We scored every test email in four versions, so each message is only ever compared with itself. The headers never change; only the body does. A model with four billion parameters cannot rewrite HTML reliably, so all rewriting starts from the canonical plain-text version, null-A.
 
 - **orig** is the email as received.
-- **null-A** is a controlled canonicalization of orig, made by a fixed rule with no model involved.
-  - It keeps the headers, but replaces the body with one UTF-8 text/plain part.
-  - That part is the email's own plain part if it has one, and any HTML alternative is dropped. Otherwise it is the visible text of the HTML, with each link's address written after its anchor text as `<URL>`.
-  - HTML tags, styles and scripts disappear, and so does every link that appears only outside an anchor, for example in an image or a stylesheet.
-  
-  Comparing the rewrite with null-A isolates the wording. Comparing null-A with orig measures this canonicalization as a whole.
+- **null-A** is a controlled canonicalization of orig, made by a fixed rule with no model involved. It keeps the headers but replaces the body with one UTF-8 text/plain part. That part is the email's own plain part if it has one, with any HTML alternative dropped. Otherwise it is the visible text of the HTML, with each link's address written after its anchor text as `<URL>`. HTML tags, styles and scripts disappear, and so does every link that appears only outside an anchor, for example in an image or a stylesheet. Comparing the rewrite with null-A isolates the wording; comparing null-A with orig measures this canonicalization as a whole.
 - **lex** is the null-A text after a dictionary synonym swap, using WordNet [8] through NLTK [9]. We swapped words until {{lex_dose}} of them had changed, the median change the model made on the pilot. Links, addresses and placeholders were never touched. This version answers whether *any* rewording of that size lowers detection.
 - **llm** is one paraphrase of the null-A text by gemma3:4b [10], run locally through Ollama [11] at temperature 0 with a fixed seed. The prompt was: *"Rewrite the following email in your own words. Keep every link, name, number and the requested action unchanged. Output only the rewritten email text."* It never mentions filters or detection, and the model received no feedback. We counted refusals and did not work around them.
 
@@ -96,9 +91,9 @@ Gates check facts, not meaning. For meaning, llama3.2:3b [12], a local model fro
 
 All three layers are static: fixed rules, or a frozen model that does not learn from the emails it scores.
 
-- **SpamAssassin** ({{spamassassin_version}}) [13], with its shipped rules, local tests only, and its Bayesian learning switched off.
+- **SpamAssassin** {{spamassassin_version_number}} [13], with its shipped rules, local tests only, and its Bayesian learning switched off.
 - **A TF-IDF classifier with logistic regression** [14], trained only on the training split ({{phishing_train}} phishing, {{ham_train}} legitimate). We chose its one setting on the development split (C = {{l2_C}}, AUC {{l2_dev_auc}}) and then froze it. It reads the subject and the visible body text.
-- **Lynceus** ({{lynceus_version}}), a rule-based phishing detector that the first author developed before this study, with AI assistance for the code. We use its message engine unchanged, except for its Windows sandbox launcher, which we replaced so it runs offline in our container. We froze it before any rewrite was scored. Its signal comes mostly from links, the sender and HTML structure, plus one rule for urgent, credential-requesting phrases. Because we are evaluating our own tool, it went through exactly the same controls as the other layers.
+- **Lynceus** (commit {{lynceus_commit}}), a rule-based phishing detector that the first author developed before this study, with AI assistance for the code. We use its message engine unchanged, except for its Windows sandbox launcher, which we replaced so it runs offline in our container. We froze it before any rewrite was scored. Its signal comes mostly from links, the sender and HTML structure, plus one rule for urgent, credential-requesting phrases. Because we are evaluating our own tool, it went through exactly the same controls as the other layers.
 
 We used each layer at two operating points: its own default, and a threshold fixed on the development split so that at most 1% of legitimate emails are flagged (SpamAssassin {{spamassassin_threshold}}, TF-IDF {{tfidf_lr_threshold}}, Lynceus {{lynceus_threshold}}). Neither was touched after rewritten emails were scored.
 

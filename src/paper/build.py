@@ -35,6 +35,8 @@ def values():
         for layer, t in json.loads(thresholds.read_text())["layers"].items():
             v[f"{layer}_threshold"] = round(t["threshold"], 2)
             v[f"{layer}_version"] = t["version"]
+        v["spamassassin_version_number"] = v["spamassassin_version"].split()[1]  # "SpamAssassin 4.0.1 scoreset 0"
+        v["lynceus_commit"] = v["lynceus_version"].split()[1][:7]  # "lynceus ac2a5af9b4f2 email-... rules ..."
     pilot = json.loads(pathlib.Path("results/m3_pilot.json").read_text())
     v["lex_dose"] = f"{100 * pilot['change_fraction_passed']['median']:.1f}%"
     v["pilot_passed"] = pilot["gate_passed"]
@@ -76,7 +78,9 @@ def values():
                 v[f"canon_{label}_{k}"] = f"{x:g}%" if k.startswith("pct") else f"{x:g}"
     ids = pathlib.Path("paper/authors.local.json")  # git-ignored: IDs reach the PDF, never the repository
     if ids.exists():
-        v["student_ids"] = ", ".join(f"{a['name']} {a['student_id']}" for a in json.loads(ids.read_text())["authors"])
+        v["student_ids"] = ", ".join(f"{a['name']} (ID {a['student_id']})" for a in json.loads(ids.read_text())["authors"])
+    else:  # a reviewer's build: names without IDs
+        v["student_ids"] = "Sodik Tursunboev, Kavish Chaudhari"
     judge = pathlib.Path("results/judge.json")
     if judge.exists():
         out = json.loads(judge.read_text())
@@ -123,8 +127,12 @@ def table_main():
 def table_gates():
     """Table 2: rewrites, gate passes and failures per class."""
     rows = _csv("results/gates_test.csv")
+    names = {"refusal": "Refusal", "meta_text": "Meta-text", "urls": "Links", "numbers": "Numbers",
+             "entities": "Entities", "length": "Length", "language": "Language",
+             "not_rewritten_too_long": "Too long to rewrite"}
     gates = [k for k in rows[0] if k not in ("label", "rewritten", "passed")]
-    out = ["| Class | Rewritten | Passed | " + " | ".join(gates) + " |", "|---|---|---|" + "---|" * len(gates)]
+    out = ["| Class | Rewritten | Passed | " + " | ".join(names.get(g, g) for g in gates) + " |",
+           "|---|---|---|" + "---|" * len(gates)]
     for r in rows:
         name = "phishing" if r["label"] == "phishing" else "legitimate"
         out.append(f"| {name} | {r['rewritten']} | {r['passed']} | " + " | ".join(r[g] for g in gates) + " |")
