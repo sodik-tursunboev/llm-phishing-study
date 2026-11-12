@@ -53,7 +53,9 @@ def values():
     if judge.exists():
         out = json.loads(judge.read_text())
         v["judge_equivalent_rate"] = f"{100 * out['equivalent_rate']:.0f}%"
-        v["judge_changed"] = sum(q["model_answers_changed_by_author"] for q in out["questions"].values())
+        v["judge_checks"] = "; ".join(
+            f"{name} checked {d['pairs_checked']} of {out['pairs']} pairs and changed {d['answers_changed']} "
+            f"of {d['answers']} model answers" for name, d in out["checked_by"].items()) + "."
     ratings = pathlib.Path("results/ratings.json")
     if ratings.exists():
         out = json.loads(ratings.read_text())

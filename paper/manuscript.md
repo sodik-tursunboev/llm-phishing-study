@@ -8,7 +8,7 @@ must be written or verified by the authors. Target: about 2,000 words including 
 
 *Official topic: The Evasion Capabilities of LLM-Generated Phishing Payloads Against Static Security Architectures*
 
-Sodiq Tursunboev, Kavish [AUTHORS: surname] · Vistula University · Architecture of Computers 2026/27 · [AUTHORS: student IDs]
+Sodik Tursunboev, Kavish [AUTHORS: surname] · Vistula University · Architecture of Computers 2026/27 · [AUTHORS: student IDs]
 
 ## Abstract
 
@@ -65,7 +65,7 @@ A rewrite enters the analysis only if, compared with its null-A text:
 
 These gates were fixed on a 53-message pilot ({{pilot_passed}} of 53 passed) before the main run. Messages that failed are counted and compared with those that passed.
 
-For 30 rewrite pairs (15 per class), a second local model (llama3.2:3b, a different family from the generator) judged whether the rewrite keeps the requested action, the target and entities, the urgency, and the label. The first author then read every pair and corrected any judgment they disagreed with ({{judge_changed}} of 120 answers). We report the share of pairs judged equivalent on all four questions ({{judge_equivalent_rate}}). This is a check of the gates by a model and one author, not an independent two-rater audit.
+For 30 rewrite pairs (15 per class), a second local model (llama3.2:3b, a different family from the generator) judged whether the rewrite keeps the requested action, the target and entities, the urgency, and the label. A human then read every pair and corrected any judgment they disagreed with: {{judge_checks}} We report the share of pairs judged equivalent on all four questions ({{judge_equivalent_rate}}). This is a check of the gates by a model and a human reader, not an independent two-rater audit.
 
 ### 3.4 Detectors
 
@@ -126,7 +126,7 @@ We then separate *what moved* from *why*. SpamAssassin's score is a sum of rule 
 
 **Data and code.** Code, configurations, manifests, hashes and aggregate results: [AUTHORS: repository link]. Raw corpora are not redistributed; they are re-downloaded and verified by hash. Raw rewrites are available to reviewers on request.
 
-**Contributions.** Sodiq Tursunboev designed and ran the study and developed Lynceus. Kavish [AUTHORS: surname] rated the audit sample independently and verified every reference and number. [AUTHORS: confirm.]
+**Contributions.** Sodik Tursunboev designed and ran the study, and authored Lynceus before the study began (AI-assisted; see `LYNCEUS_NOTES.md`). Kavish [AUTHORS: surname] is the project partner: [AUTHORS: Kavish's tasks, e.g. verifying every reference and number against the result files]. Kavish did not write Lynceus. {{judge_checks}} Details in `CONTRIBUTIONS.md`.
 
 **Conflict of interest.** Lynceus is the first author's own tool.
 

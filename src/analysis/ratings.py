@@ -1,6 +1,6 @@
 """The blind human rating (scope v3): both authors rate the same 30 pairs; Claude Code never rates.
 
-python -m src.analysis.ratings make    ->  ratings/sheet_sodiq.csv and ratings/sheet_kavish.csv
+python -m src.analysis.ratings make    ->  ratings/sheet_sodik.csv and ratings/sheet_kavish.csv
 python -m src.analysis.ratings kappa   ->  results/ratings.json (agreement and Cohen's kappa)
 
 The 30 pairs are the first 15 phishing and first 15 legitimate test rewrites that pass every gate,
@@ -28,7 +28,7 @@ QUESTIONS = {
     "same_urgency": "Same level of urgency or pressure? (yes/no)",
     "same_label": "Would you still call it phishing / legitimate, as the original? (yes/no)",
 }
-RATERS = ["sodiq", "kavish"]
+RATERS = ["sodik", "kavish"]
 KEY = pathlib.Path("data/ratings_key.json")
 
 
@@ -55,7 +55,7 @@ def make():
             w.writerow(["(question)", "", "", *QUESTIONS.values(), "optional"])
             for i, (m, response) in enumerate(chosen, 1):
                 w.writerow([f"P{i:02d}", defang(plain_body(m)), defang(clean(response)), "", "", "", "", ""])
-    print(f"wrote ratings/sheet_sodiq.csv and ratings/sheet_kavish.csv ({len(chosen)} pairs each)")
+    print(f"wrote ratings/sheet_sodik.csv and ratings/sheet_kavish.csv ({len(chosen)} pairs each)")
 
 
 def kappa():

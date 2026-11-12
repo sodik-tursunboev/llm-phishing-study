@@ -6,9 +6,13 @@ work. It runs on the host's Ollama, so no email text leaves the machine. Claude 
 counts. No inter-rater kappa is claimed: there is one model and one checking author.
 
 python -m src.analysis.judge run      -> ratings/sheet_model.csv: the 30 pairs (same pairs as
-    data/ratings_key.json), the model's four answers already filled in, and an empty `checked` column
-python -m src.analysis.judge summary  -> results/judge.json, after the author has read every pair,
-    corrected any answer they disagree with, and typed yes in `checked`
+    data/ratings_key.json), the model's four answers already filled in, and an EMPTY `checked` column
+python -m src.analysis.judge summary  -> results/judge.json, once a human has read every pair,
+    corrected any answer they disagree with, and typed their own name in `checked`
+
+`checked` is never filled by code. The summary refuses to run while any pair is unchecked or any
+answer is blank, and records per named person how many pairs they checked and answers they changed,
+so the paper states exactly who checked what.
 
 Needs network to reach the host's Ollama (like generate.py, DEVIATIONS.md #11).
 """
@@ -70,25 +74,44 @@ def run():
     with open(SHEET, "w", newline="", encoding="utf-8-sig") as f:
         w = csv.writer(f)
         w.writerow(["pair", "original", "rewrite", *QUESTIONS, "checked", "notes"])
-        w.writerow(["(question)", "", "", *QUESTIONS.values(), "type yes once you have read this pair", "optional"])
+        w.writerow(["(question)", "", "", *QUESTIONS.values(),
+                    "type YOUR NAME (Sodik or Kavish) once you have read this pair", "optional"])
         w.writerows(rows)
     blanks = sum(v == "" for a in answers.values() for v in a.values())
     print(f"wrote {SHEET}: {len(rows)} pairs, {blanks} answers left blank by the model")
+
+
+AUTHORS = {"sodik": "Sodik Tursunboev", "kavish": "Kavish"}  # what a checker types -> name in the paper
+
+
+def checker(text):
+    """The author who checked a pair, from what they typed in `checked`; None if no author name."""
+    typed = text.strip().lower()
+    return next((name for key, name in AUTHORS.items() if typed.startswith(key)), None)
 
 
 def summary():
     model = json.loads(ANSWERS.read_text())["answers"]
     with open(SHEET, newline="", encoding="utf-8-sig") as f:
         final = {r["pair"]: r for r in csv.DictReader(f) if r["pair"].startswith("P")}
-    unchecked = [p for p, r in final.items() if r["checked"].strip().lower() != "yes"]
+    who = {p: checker(r["checked"]) for p, r in final.items()}
+    unchecked = [p for p, name in who.items() if name is None]
     if unchecked:
-        raise SystemExit(f"not checked yet: {', '.join(unchecked)}")
-    out = {"pairs": len(final), "judge": MODEL, "checked_by": "first author", "questions": {}}
+        raise SystemExit(f"not checked yet (no author name in `checked`): {', '.join(unchecked)}")
+    blank = [p for p in final if any(final[p][q].strip().lower() not in ("yes", "no") for q in QUESTIONS)]
+    if blank:
+        raise SystemExit(f"answers still blank or not yes/no: {', '.join(blank)}")
+    out = {"pairs": len(final), "judge": MODEL, "checked_by": {}, "questions": {}}
+    for name in sorted(set(who.values())):
+        mine = [p for p in final if who[p] == name]
+        out["checked_by"][name] = {
+            "pairs_checked": len(mine), "answers": 4 * len(mine),
+            "answers_changed": sum(final[p][q].strip().lower() != model[p][q] for p in mine for q in QUESTIONS)}
     for q in QUESTIONS:
         changed = [p for p in final if final[p][q].strip().lower() != model[p][q]]
         yes = sum(final[p][q].strip().lower() == "yes" for p in final)
         out["questions"][q] = {"final_yes_rate": round(yes / len(final), 3),
-                               "model_answers_changed_by_author": len(changed), "changed_pairs": changed}
+                               "model_answers_changed": len(changed), "changed_pairs": changed}
     out["equivalent_rate"] = round(sum(all(final[p][q].strip().lower() == "yes" for q in QUESTIONS)
                                        for p in final) / len(final), 3)
     pathlib.Path("results/judge.json").write_text(json.dumps(out, indent=2) + "\n")

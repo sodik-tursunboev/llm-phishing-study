@@ -47,5 +47,12 @@ def test_judge_answers_are_yes_no_or_left_blank():
     assert set(parse("not json").values()) == {""}
 
 
+def test_only_an_author_name_counts_as_checked():
+    from src.analysis.judge import checker
+
+    assert checker("Sodik") == "Sodik Tursunboev" and checker(" kavish ") == "Kavish"
+    assert checker("") is None and checker("yes") is None and checker("Claude") is None
+
+
 def test_holm():
     assert holm([0.01, 0.04, 0.03]) == pytest.approx([0.03, 0.06, 0.06])

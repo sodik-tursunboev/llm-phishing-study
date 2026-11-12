@@ -91,7 +91,17 @@ The new detonation code is not on the path this study uses.
 - Its rules were written by the same authors who run this study (conflict of interest, README section 7.5): results are reported whatever they are, with the same controls as every layer.
 - The frozen version must never be tuned on rewritten data. A bug found after the freeze goes to `DEVIATIONS.md` and triggers a full re-run.
 
-## 9. [GATE] Authorship split: authors to fill in
+## 9. Authorship split (answered by the authors on 2026-11-12)
+
+**Authors' statement:** Lynceus was authored by Sodik Tursunboev before this study. Kavish [surname] is Sodik's partner in this study and did not write Lynceus.
+
+Dates from the two git histories:
+- Lynceus's first commit is 2026-11-04.
+- The version first pinned, `d9c3ba8`, is from 2026-11-10 23:40.
+- This study's first commit is 2026-11-11 00:23.
+- The evaluated version, `ac2a5af` (2026-11-12 14:00), adds Sodik's later improvements, made without study data. They change no verdict on this study's data (DEVIATIONS.md #17).
+
+The table below records how Lynceus was built, AI assistance included, so the paper can answer the coordinator's question exactly.
 
 The coordinator asked what we built ourselves. Git history alone does not establish contributions (README section 7.1). It shows one human author and Claude co-authorship on every commit.
 
@@ -99,18 +109,18 @@ Filled in on 2026-11-12 by Claude Code (Claude Opus 5.5), the assistant that wro
 
 | Part | Written by us | AI-assisted (how) | Third-party |
 |---|---|---|---|
-| Direction, scope and decisions | Sodiq: set the goals and the milestone order, chose what to build, approved each plan, every architecture decision record (24 at `d9c3ba8`, 25 at `ac2a5af`) and every new dependency, chose the evaluation datasets, and ran the installs and live checks on his own machine | Claude Code proposed the designs and wrote the plans and decision records for approval | None |
+| Direction, scope and decisions | Sodik: set the goals and the milestone order, chose what to build, approved each plan, every architecture decision record (24 at `d9c3ba8`, 25 at `ac2a5af`) and every new dependency, chose the evaluation datasets, and ran the installs and live checks on Sodik's own machine | Claude Code proposed the designs and wrote the plans and decision records for approval | None |
 | Rule design (which signs of phishing, weights) | None known: no rule or weight is recorded as written by the authors; the authors approved them milestone by milestone | Claude Code chose the signs of phishing and set every weight, cap and threshold by hand, from general knowledge of phishing techniques, then checked them on its own synthetic corpus and, for URLs, on real data (E1). Weights were never fitted: a fit on E1 data was tried and not adopted. The message rules used here are unchanged since 2026-11-10 | MITRE ATT&CK technique ids, as labels only |
 | Rule and engine code | None known | Written by Claude Code from the authors' instructions: all 84 commits (2026-11-04 to 2026-11-12) are authored as `sodik-t` and every one carries a Claude co-author trailer (67 Claude Sonnet 5.5, 17 Claude Opus 5.5) | The libraries in the next rows |
 | Rule data (brand lists, phrase lists) | None known | Drafted by Claude Code from general knowledge and not verified against any source, as their own file headers say: `rules/url/brands.toml` and `rules/url/lists.toml` (2026-11-04), `rules/email/lists.toml` (urgency and credential phrases, English and Polish, 2026-11-05) | `rules/url/data/confusables.txt`: Unicode UTS #39 confusables 18.0.0, unmodified, Unicode License (`rules/url/data/PROVENANCE.md`). `core/urls/data/public_suffix_list.dat`: Public Suffix List snapshot of 2026-11-04, MPL 2.0 (`core/urls/data/PROVENANCE.md`) |
 | Parser libraries | | | On this study's path (text-only messages): ada-url (URL parsing) and pydantic (data models) in the engine, and the Python standard library (`email`, `html.parser`) in the parser worker, which imports nothing else. lxml, pikepdf, Pillow and OpenCV are used only for attachments and are not installed here |
-| Kavish's part in Lynceus | None known: no commits under another name and not involved in the sessions that built it. **Kavish to confirm** | | |
+| Kavish's part in Lynceus | None: Kavish did not write Lynceus (authors' statement, 2026-11-12); no commits under another name | | |
 
 ## Open questions
 
-1. Confirm `flagged` = MALICIOUS or SUSPICIOUS (section 5).
-2. Licence for Lynceus, and whether it may be released with the study or only described.
-3. The authorship split (section 9).
+1. Licence for Lynceus, and whether it may be released with the study or only described.
+
+Answered: `flagged` = MALICIOUS or SUSPICIOUS (approved with PROTOCOL.md); the authorship split (section 9).
 
 ## Not verified
 
