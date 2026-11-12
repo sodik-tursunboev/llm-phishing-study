@@ -35,6 +35,26 @@ def values():
         for layer, t in json.loads(thresholds.read_text())["layers"].items():
             v[f"{layer}_threshold"] = round(t["threshold"], 2)
             v[f"{layer}_version"] = t["version"]
+    pilot = json.loads(pathlib.Path("results/m3_pilot.json").read_text())
+    v["lex_dose"] = f"{100 * pilot['change_fraction_passed']['median']:.1f}%"
+    v["pilot_passed"] = pilot["gate_passed"]
+    # Main results, once they exist: e.g. {{spamassassin_phishing_calibrated_llm_vs_null_a_net_pp}}
+    primary = pathlib.Path("results/primary_test.csv")
+    if primary.exists():
+        for r in _csv(primary):
+            if r["set"] == "gate_passed":
+                key = f"{r['layer']}_{r['class']}_{r['point']}_{r['contrast'].replace(' ', '_')}"
+                v |= {f"{key}_{k}": r[k] for k in r if k not in ("layer", "set", "class", "point", "contrast")}
+    gates = pathlib.Path("results/gates_test.csv")
+    if gates.exists():
+        for r in _csv(gates):
+            v |= {f"gates_{r['label']}_{k}": int(r[k]) for k in r if k != "label"}
+    ratings = pathlib.Path("results/ratings.json")
+    if ratings.exists():
+        out = json.loads(ratings.read_text())
+        v["ratings_equivalent_both"] = f"{100 * out['equivalent_both']:.0f}%"
+        for q, s in out["questions"].items():
+            v[f"kappa_{q}"], v[f"agreement_{q}"] = s["cohen_kappa"], f"{100 * s['agreement']:.0f}%"
     return v
 
 
