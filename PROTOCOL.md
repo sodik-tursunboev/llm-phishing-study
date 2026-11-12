@@ -44,7 +44,7 @@ Failures are counted per gate. Kept and discarded messages are compared on lengt
 |---|---|---|
 | L1 SpamAssassin | 4.0.1, shipped rules, scoreset 0, local tests only, Bayes and auto-learn off; native threshold 5.0 | `configs/thresholds.json` (9.393) |
 | L2 TF-IDF + logistic regression | train split only, C = 100 chosen on dev, model SHA-256 in `configs/tfidf_lr.json`; native threshold logit 0 | `configs/thresholds.json` (−1.594) |
-| L4 Lynceus | **TO BE CONFIRMED at the re-pin**: expected commit `ac2a5af9b4f209a76c881a5337c5291b25b54c63`, `rules/` hash `176402d19e7d02d741770bd858c74a4071b5ff2bc3539fd7f515242b21af485e`, tag `lynceus-eval-v1`; native = MALICIOUS or SUSPICIOUS. **Score:** Lynceus's risk (0-100) for every message, from its own scoring function on the rules that fired; Lynceus reports it only at 45 and above (UNKNOWN carries none), so the adapter re-runs that function with the SUSPICIOUS line at 0; 0 when no rule fired; errors have no score (`src/detectors/lynceus.py`, DEVIATIONS.md #16) | **to be calibrated on dev after the re-pin** |
+| L4 Lynceus | Commit `ac2a5af9b4f209a76c881a5337c5291b25b54c63`, `rules/` hash `176402d19e7d02d741770bd858c74a4071b5ff2bc3539fd7f515242b21af485e`, both confirmed at the re-pin on 2026-11-12; tag `lynceus-eval-v1`; native = MALICIOUS or SUSPICIOUS. **Score:** Lynceus's risk (0-100) for every message, from its own scoring function on the rules that fired; Lynceus reports it only at 45 and above (UNKNOWN carries none), so the adapter re-runs that function with the SUSPICIOUS line at 0; 0 when no rule fired; errors have no score (`src/detectors/lynceus.py`, DEVIATIONS.md #16) | `configs/thresholds.json` (87) |
 
 Thresholds leave at most 1% of dev legitimate originals flagged. They are never changed after rewritten data is scored.
 
@@ -61,6 +61,13 @@ Thresholds leave at most 1% of dev legitimate originals flagged. They are never 
   - exact McNemar p;
   - mean paired score shift, with its CI.
 - **Confirmatory family:** phishing, calibrated threshold, `llm vs null_a`, gate-passed set, one test per layer, Holm-adjusted. Everything else is descriptive.
+- **Margin of 2 percentage points.** For every contrast, the 95% CI of the net change is read in this order:
+  - if it excludes 0, we report a **change**;
+  - otherwise, if it lies inside ±2 pp, we report **"no change larger than 2 pp"**;
+  - otherwise the result is **inconclusive**.
+  `primary.py` writes this reading into the `reading` column.
+  `null_a vs orig` is not expected to be zero: it measures the plain-text format (DEVIATIONS.md #12). It is reported under the same rule, never treated as a pipeline failure. The pipeline itself is checked by the tests and by identical output hashes across re-runs.
+- **Errors.** A message whose score is an error on either side of a contrast is left out of that layer's contrast, and counted in `excluded_errors`. An error is never counted as flagged or as missed.
 - **Sensitivity:** every result is also given on all rewrites, not only gate-passed ones.
 - **Cause:** rule and token accounting (which SpamAssassin rules, L2 tokens and Lynceus rules moved). Then **one** rule-based intervention on the main suspect, chosen from the accounting and declared in `DEVIATIONS.md` before it is run. Anything else is phrased "consistent with".
 

@@ -24,6 +24,16 @@ from src.data.emails import plain_body
 from src.rewrite.gates import GATES, check, clean
 
 LAYERS = ["spamassassin", "tfidf_lr", "lynceus"]
+MARGIN_PP = 2.0  # PROTOCOL.md section 5
+
+
+def reading(low_pp, high_pp):
+    """The pre-declared reading of a 95% CI for a net change (PROTOCOL.md section 5)."""
+    if low_pp > 0 or high_pp < 0:
+        return "change"
+    if -MARGIN_PP <= low_pp and high_pp <= MARGIN_PP:
+        return f"no change larger than {MARGIN_PP:g} pp"
+    return "inconclusive"
 CONTRASTS = [("llm", "null_a"), ("lex", "null_a"), ("llm", "lex"), ("null_a", "orig")]  # (B, A)
 
 
@@ -70,9 +80,9 @@ def main(split, layers):
         for analysis_set in ("gate_passed", "all_rewrites"):
             for cls in ("phishing", "ham"):
                 for b, a in CONTRASTS:
-                    ids = [i for i in label if label[i] == cls and (analysis_set == "all_rewrites" or i in passed)
-                           and scores[(i, a)]["error"] is None and scores[(i, b)]["error"] is None]
-                    excluded = sum(1 for i in label if label[i] == cls) - len(ids)
+                    in_set = [i for i in label if label[i] == cls and (analysis_set == "all_rewrites" or i in passed)]
+                    ids = [i for i in in_set if scores[(i, a)]["error"] is None and scores[(i, b)]["error"] is None]
+                    excluded = len(in_set) - len(ids)  # scoring errors only (PROTOCOL.md section 5)
                     for point in ("native", "calibrated"):
                         flag = (lambda s: s["flagged"]) if point == "native" else (lambda s: s["score"] > t)  # noqa: E731
                         fa = [flag(scores[(i, a)]) for i in ids]
@@ -91,6 +101,7 @@ def main(split, layers):
                             "lost": lost, "gained": gained,
                             "net_pp": round(100 * sum(diffs) / len(ids), 2) if ids else "",
                             "ci_low_pp": round(100 * ci[0], 2) if ids else "", "ci_high_pp": round(100 * ci[1], 2) if ids else "",
+                            "reading": reading(100 * ci[0], 100 * ci[1]) if ids else "",
                             "mcnemar_p": round(mcnemar_exact(lost, gained), 6),
                             "score_shift": round(statistics.mean(shift), 4) if ids else "",
                             "shift_ci_low": round(sci[0], 4) if ids else "", "shift_ci_high": round(sci[1], 4) if ids else "",

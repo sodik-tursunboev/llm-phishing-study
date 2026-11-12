@@ -23,7 +23,7 @@ from core.email.engine import ENGINE_VERSION, analyze_message  # noqa: E402
 from core.risk.scoring import score as lynceus_scoring  # noqa: E402  (its own arithmetic)
 from rules.email.data import ruleset_version, scoring  # noqa: E402
 
-PINNED = "d9c3ba88f9b995d9079434d39ad8d977dbb49b05"  # the evaluated version (LYNCEUS_NOTES.md)
+PINNED = "ac2a5af9b4f209a76c881a5337c5291b25b54c63"  # the evaluated version (LYNCEUS_NOTES.md)
 COMMIT = (ROOT / "COMMIT").read_text().strip()
 if COMMIT != PINNED:  # refuse to score with any other version of Lynceus
     raise RuntimeError(f"Lynceus snapshot is {COMMIT}, expected {PINNED}")

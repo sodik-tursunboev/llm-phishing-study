@@ -16,10 +16,10 @@ Every stage runs in one Docker image (`Dockerfile`). Every stage except the corp
 
 ## Lynceus snapshot (L4)
 
-Lynceus is evaluated at commit `d9c3ba88f9b995d9079434d39ad8d977dbb49b05`. Only its `core/` and `rules/` folders are copied, into the Docker volume `lynceus-src`, mounted read-only at `/opt/lynceus`. The adapter refuses any other commit. Its Python dependencies are pinned in `requirements.txt`. Create the snapshot once (git 2.40 or later; run in `cmd` or bash, because PowerShell 5.1 corrupts binary pipes):
+Lynceus is evaluated at commit `ac2a5af9b4f209a76c881a5337c5291b25b54c63`. Only its `core/` and `rules/` folders are copied, into the Docker volume `lynceus-src`, mounted read-only at `/opt/lynceus`. The adapter refuses any other commit. Its Python dependencies are pinned in `requirements.txt`. Create the snapshot once (git 2.40 or later; run in `cmd` or bash, because PowerShell 5.1 corrupts binary pipes):
 
 ```bash
-git -C <path-to-lynceus-repo> archive --add-virtual-file=COMMIT:d9c3ba88f9b995d9079434d39ad8d977dbb49b05 d9c3ba88f9b995d9079434d39ad8d977dbb49b05 core rules | docker run --rm -i -v lynceus-src:/opt/lynceus llm-phishing-study tar -x -C /opt/lynceus
+git -C <path-to-lynceus-repo> archive --add-virtual-file=COMMIT:ac2a5af9b4f209a76c881a5337c5291b25b54c63 ac2a5af9b4f209a76c881a5337c5291b25b54c63 core rules | docker run --rm -i -v lynceus-src:/opt/lynceus llm-phishing-study tar -x -C /opt/lynceus
 ```
 
 ## Where the data lives

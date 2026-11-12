@@ -7,8 +7,8 @@ Everything below comes from the Lynceus repository at the pinned commit (code, `
 | | |
 |---|---|
 | Repository | local, `C:\mirage` (folder name from its earlier name MIRAGE; renamed Lynceus on 2026-11-06 per its README) |
-| Version evaluated | branch `main`, commit `d9c3ba88f9b995d9079434d39ad8d977dbb49b05` (2026-11-10 23:40 +01:00). The other branch, `rename-lynceus` (worktree `C:\lynceus-work`), has no commit that `main` lacks. |
-| Engine versions | `lynceus d9c3ba88f9b9 email-1.2.0 rules 1.3.0+70796a1de43c`, as reported by the adapter; `rules/` SHA-256 `a08ecc81cd929a55aee936acc8800d8d190c3b28a3ec5ab7372ad3ffc5601fe1`. The adapter refuses to run on any other commit. |
+| Version evaluated | branch `main`, commit **`ac2a5af9b4f209a76c881a5337c5291b25b54c63`** ("D1: page detonation ...", re-pinned 2026-11-12; DEVIATIONS.md #17). It was first pinned at `d9c3ba88f9b995d9079434d39ad8d977dbb49b05`. The other branch, `rename-lynceus` (worktree `C:\lynceus-work`), has no commit that `main` lacks. |
+| Engine versions | `lynceus ac2a5af9b4f2 email-1.2.0 rules 1.3.0+70796a1de43c`, as reported by the adapter; `rules/` SHA-256 `176402d19e7d02d741770bd858c74a4071b5ff2bc3539fd7f515242b21af485e`. The adapter refuses to run on any other commit. |
 | Licence | **UNKNOWN**: the repository has no LICENSE, COPYING or NOTICE file |
 | History | 83 commits, 2026-11-04 to 2026-11-10, all authored by `sodik-t`; all 83 carry a `Co-Authored-By` trailer for Claude (67 Claude Sonnet 5.5, 16 Claude Opus 5.5). The repository contains `CLAUDE.md`, a Claude Code instruction file. |
 
@@ -68,16 +68,22 @@ The URL rules see the links, and the gates keep links identical. The sender rule
 
 ## 7. Stability on the original test split (go/no-go criteria, README section 7.4)
 
-`python -m src.detectors.run lynceus test`, run twice offline on 2026-11-11:
-- 1,662 of 1,662 messages scored, 0 errors, 131 s and 136 s;
-- the two output files are identical (SHA-256 `e485ec66a95d70a512bf455416f82466ab071d5eb3803fe46d232799a2c84bf7`);
-- the adapter tests pass.
+`python -m src.detectors.run lynceus test`, run twice offline on 2026-11-12, at `ac2a5af` and after the PII-scrub fix (DEVIATIONS.md #13):
+- 1,662 of 1,662 messages scored, 0 errors, 225 s and 216 s;
+- the two output files are identical (SHA-256 `9d9ae765f6741de1a536474af71b6a2e02e6e067d5b7a49fa1fa892c16c2012c`);
+- all 41 study tests pass.
 
-That meets all three go criteria. Detection rates were deliberately not looked at: thresholds are set on dev, never on test.
+That meets all three go criteria. Test detection rates were not looked at: thresholds are set on dev, never on test.
 
-**Freeze:** tag `lynceus-eval-v1` once the authors confirm section 5's mapping and the dev threshold is fixed, before any rewritten data is scored.
+**Re-pin check (2026-11-12):** dev was scored at `d9c3ba8` and at `ac2a5af` with the same adapter. All 997 dev messages give the same score, flag, state, rules fired and error at both commits. On the message path, only two files changed between the commits:
+- `core/detection/engine.py`: parameters added with defaults;
+- the worker: a new `reencode_jpeg` operation for detonator screenshots, never called for email.
 
-**Version change pending (2026-11-11):** the first author is improving Lynceus. The rule is that no data from this study (corpora, dev, test, rewrites) may be used for that work. When the new commit is ready, the adapter is re-pinned, sections 1 and 7 are re-run, and only then is Lynceus calibrated on dev; its dev results are not reported before that. The change goes in `DEVIATIONS.md`.
+The new detonation code is not on the path this study uses.
+
+**Dev calibration (2026-11-12, `configs/thresholds.json`):** flag when score > 87. That flags 0.7% of dev legitimate mail and catches 12.0% of dev phishing. The native point (MALICIOUS or SUSPICIOUS) flags 6.0% and catches 61.0%.
+
+**Freeze:** tag `lynceus-eval-v1` on the study commit that pins `ac2a5af`, before any rewritten data is scored.
 
 ## 8. Known limits
 

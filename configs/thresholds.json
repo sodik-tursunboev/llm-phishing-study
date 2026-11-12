@@ -23,6 +23,18 @@
       "errors": 0,
       "version": "tfidf_lr C=100.0",
       "config_hash": "42d6148a5c92e4d5f9370c97b21ba004e2e9ef7f1e5b493c13e9348ea30e0e38"
+    },
+    "lynceus": {
+      "threshold": 87,
+      "dev_fpr": 0.0069,
+      "dev_tpr": 0.1205,
+      "native_dev_fpr": 0.0601,
+      "native_dev_tpr": 0.6096,
+      "n_ham": 582,
+      "n_phishing": 415,
+      "errors": 0,
+      "version": "lynceus ac2a5af9b4f2 email-1.2.0 rules 1.3.0+70796a1de43c",
+      "config_hash": "176402d19e7d02d741770bd858c74a4071b5ff2bc3539fd7f515242b21af485e"
     }
   },
   "rule": "flag when score > threshold",
