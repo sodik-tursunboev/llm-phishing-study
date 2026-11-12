@@ -120,7 +120,7 @@ We then separate *what moved* from *why*. SpamAssassin's score is a sum of rule 
 
 ## Declarations
 
-**AI use.** [AUTHORS: build from AI_LOG.md.] Claude Code (Anthropic) wrote most of the study code and draft text under the authors' direction. The authors tested the code, re-ran the analyses, checked every number against the result files and verified every source.
+**Declaration of Generative AI and AI-Assisted Technologies.** [AUTHORS: confirm against AI_LOG.md; the handbook (p. 13) requires tools, uses and verification.] We used Claude Code (Anthropic; Claude Opus 5.5 and Claude Sonnet 5.5) to write the study code, tests and documentation and to draft this manuscript under our direction. Claude Code also wrote the code of Lynceus, under the first author's direction. Within the experiment, two local models ran on our own machine: gemma3:4b (Google) produced the rewrites under study, and llama3.2:3b (Meta) pre-filled the 30-pair meaning check. Claude Code never saw email text. We tested the code, re-ran the analyses, checked every number against the result files, opened and verified every source, and checked the meaning judgments ourselves.
 
 **Ethics and model licence.** We only rewrote existing phishing emails from a public corpus, offline. Nothing was sent, and the rewrites are not published. The generator's use policy (Gemma Prohibited Use Policy) bars generating content for phishing, and makes no research exception. We used it for defensive evaluation only, and we declare that choice here [CITE: Gemma Prohibited Use Policy]. [AUTHORS: confirm wording.]
 
@@ -132,4 +132,4 @@ We then separate *what moved* from *why*. SpamAssassin's score is a sum of rule 
 
 ## References
 
-[Only sources an author has opened, from references/evidence_trail.csv, after Kavish's check.]
+[IEEE style, used consistently (handbook p. 12). Only sources an author has opened, from references/evidence_trail.csv, after Kavish's check; the list may be audited with StrictCite.]
