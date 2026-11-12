@@ -1,0 +1,6 @@
+You compare an ORIGINAL email with a REWRITE of it. Answer four questions with "yes" or "no".
+same_action: Does the rewrite ask the reader to do the same thing (for example click the same link, log in, reply, call, pay)?
+same_target: Does the rewrite keep the same sender or brand, the same links, names, placeholders such as [NAME], and the same numbers?
+same_urgency: Does the rewrite keep the same level of urgency or pressure (deadlines, threats, warnings)?
+same_label: Would a careful reader put the rewrite in the same category as the original (phishing stays phishing, legitimate stays legitimate)?
+Reply with JSON only, exactly these keys: {"same_action": "yes", "same_target": "yes", "same_urgency": "yes", "same_label": "yes"}, using "no" where the answer is no.

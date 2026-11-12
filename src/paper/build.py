@@ -49,6 +49,11 @@ def values():
     if gates.exists():
         for r in _csv(gates):
             v |= {f"gates_{r['label']}_{k}": int(r[k]) for k in r if k != "label"}
+    judge = pathlib.Path("results/judge.json")
+    if judge.exists():
+        out = json.loads(judge.read_text())
+        v["judge_equivalent_rate"] = f"{100 * out['equivalent_rate']:.0f}%"
+        v["judge_changed"] = sum(q["model_answers_changed_by_author"] for q in out["questions"].values())
     ratings = pathlib.Path("results/ratings.json")
     if ratings.exists():
         out = json.loads(ratings.read_text())

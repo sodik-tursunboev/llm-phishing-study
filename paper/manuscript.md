@@ -65,7 +65,7 @@ A rewrite enters the analysis only if, compared with its null-A text:
 
 These gates were fixed on a 53-message pilot ({{pilot_passed}} of 53 passed) before the main run. Messages that failed are counted and compared with those that passed.
 
-Both authors independently rated the same 30 rewrite pairs (15 per class), blind to class and detector output. For each pair they judged whether the rewrite keeps the requested action, the target and entities, the urgency, and the label. We report agreement and Cohen's kappa.
+For 30 rewrite pairs (15 per class), a second local model (llama3.2:3b, a different family from the generator) judged whether the rewrite keeps the requested action, the target and entities, the urgency, and the label. The first author then read every pair and corrected any judgment they disagreed with ({{judge_changed}} of 120 answers). We report the share of pairs judged equivalent on all four questions ({{judge_equivalent_rate}}). This is a check of the gates by a model and one author, not an independent two-rater audit.
 
 ### 3.4 Detectors
 
@@ -114,7 +114,7 @@ We then separate *what moved* from *why*. SpamAssassin's score is a sum of rule 
 - SpamAssassin run offline is not a commercial filter; we test static layers only, without sender reputation, DNS or authentication checks.
 - Text-only, English-only messages.
 - We evaluate our own tool.
-- The human audit covers only 30 pairs.
+- The meaning check covers only 30 pairs, judged by a small local model and checked by one author who saw the model's answers first.
 - Rewrites run on plain text, so the HTML structure of the original is not kept; null-A carries the same format, so the comparison is fair, but it is not the attacker's full message.
 - Only rewrites that kept every link and number are analysed; this is a selection, which we compare with the discarded rewrites.
 

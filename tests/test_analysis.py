@@ -37,5 +37,15 @@ def test_intervention_edit_changes_only_listed_words_and_never_links():
         "http://example.com/verify", "")
 
 
+def test_judge_answers_are_yes_no_or_left_blank():
+    from src.analysis.judge import parse
+
+    assert parse('{"same_action": "Yes", "same_target": "no", "same_urgency": "yes", "same_label": "yes"}') == {
+        "same_action": "yes", "same_target": "no", "same_urgency": "yes", "same_label": "yes"}
+    assert parse('{"same_action": "maybe"}') == {"same_action": "", "same_target": "", "same_urgency": "",
+                                                 "same_label": ""}
+    assert set(parse("not json").values()) == {""}
+
+
 def test_holm():
     assert holm([0.01, 0.04, 0.03]) == pytest.approx([0.03, 0.06, 0.06])

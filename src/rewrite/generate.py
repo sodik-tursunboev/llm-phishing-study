@@ -24,6 +24,9 @@ from src.rewrite.gates import check, clean
 
 MODEL = "gemma3:4b"
 DIGEST = "68ceab7e468a31c988b44d5a4984a0e21f58c4f7158c6ce29c1804babac38df7"  # Ollama manifest SHA-256
+# Ollama's Windows app downloads updates by itself and has no setting to stop it (DEVIATIONS #19),
+# so the server version is checked before every rewrite and written into every record.
+OLLAMA_VERSION = "0.34.4"
 PROMPT_FILE = pathlib.Path("prompts/paraphrase.txt")
 PROMPT = PROMPT_FILE.read_text(encoding="utf-8").strip()
 PROMPT_SHA256 = hashlib.sha256(PROMPT_FILE.read_bytes()).hexdigest()
@@ -44,6 +47,16 @@ def check_model():
     digests = {m["name"]: m["digest"] for m in ollama("/api/tags")["models"]}
     if digests.get(MODEL) != DIGEST:
         raise RuntimeError(f"{MODEL} on the server is {digests.get(MODEL)}, expected {DIGEST}")
+
+
+def check_version():
+    """Refuse to go on unless the server is the pinned Ollama version. Checked before every rewrite,
+    not only at start: an update replaces the server mid-run, and the run must stop rather than mix
+    versions (records already written stay, each with its version)."""
+    version = ollama("/api/version").get("version")
+    if version != OLLAMA_VERSION:
+        raise RuntimeError(f"Ollama server is {version}, expected {OLLAMA_VERSION}: run stopped")
+    return version
 
 
 def paraphrase(text):
@@ -69,6 +82,7 @@ def passes(msg, record):
 
 
 def main(split, target=None):
+    check_version()
     check_model()
     paraphrase("Hello, see you tomorrow.")  # warm-up: the first answer after loading can differ
     out = pathlib.Path(f"data/rewrites/llm_{split}.jsonl")
@@ -93,6 +107,7 @@ def main(split, target=None):
             if len(base.split()) > MAX_WORDS:
                 record["error"] = "too_long"
             else:
+                record["ollama_version"] = check_version()
                 t = time.monotonic()
                 r = paraphrase(base)
                 tokens += r.get("eval_count", 0)
