@@ -1,4 +1,4 @@
-"""The blind human rating (scope v3): both authors rate the same 30 pairs; Claude Code never rates.
+"""The blind human rating planned in scope v3 (replaced by src/analysis/judge.py, DEVIATIONS.md #20).
 
 python -m src.analysis.ratings make    ->  ratings/sheet_sodik.csv and ratings/sheet_kavish.csv
 python -m src.analysis.ratings kappa   ->  results/ratings.json (agreement and Cohen's kappa)

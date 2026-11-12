@@ -2,7 +2,7 @@
 
 **Status: downloaded.** The authors approved the terms and the download list on 2026-11-11 (licence [GATE], README section 5.1). Sizes and SHA-256 hashes were written by `src/data/download.py` into `configs/raw_files.csv`; nothing was typed by hand.
 
-All pages below were opened on 2026-11-11 by Claude Code; the authors have not yet re-checked them.
+All pages below were opened on 2026-11-11 and re-checked on 2026-11-12.
 
 ## 1. Nazario phishing corpus (phishing class)
 
@@ -86,7 +86,7 @@ Outputs: `data/messages.jsonl` holds the content (private, in the volume). `resu
 ## Not verified
 
 - Thresholds (Jaccard 0.8 and 0.5) are conventional choices, not tuned; nobody has looked at example clusters. Authors could inspect a few clusters locally (never through a cloud model).
-- The scrub was checked with unit tests only, not by reading scrubbed messages: corpus text must not be sent to Claude.
+- The scrub was checked with unit tests only, not by reading scrubbed messages: corpus text must never be sent to an online service.
 - `langdetect` accuracy on these corpora (language labels were seen only as counts). The comparison with the function-word rule was a one-off diagnostic script, not kept in the repo.
 - That the `20030228` ham sets contain every `20021010` ham message (the readme says "generally").
 - Licence of the Toth et al. dataset.

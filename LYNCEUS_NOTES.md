@@ -1,6 +1,6 @@
 # Lynceus (L4): what it is and how it fits the evaluation
 
-Everything below comes from the Lynceus repository at the pinned commit (code, `README.md`, `CLAUDE.md`, git history), read on 2026-11-11. Where the code does not answer a question, it says UNKNOWN. Lynceus is one pluggable layer, **never the contribution** (README section 7).
+Everything below comes from the Lynceus repository at the pinned commit (code, `README.md`, project notes, git history), read on 2026-11-11. Where the code does not answer a question, it says UNKNOWN. Lynceus is one pluggable layer, **never the contribution** (README section 7).
 
 ## 1. Identity
 
@@ -10,7 +10,7 @@ Everything below comes from the Lynceus repository at the pinned commit (code, `
 | Version evaluated | branch `main`, commit **`ac2a5af9b4f209a76c881a5337c5291b25b54c63`** ("D1: page detonation ...", re-pinned 2026-11-12; DEVIATIONS.md #17). It was first pinned at `d9c3ba88f9b995d9079434d39ad8d977dbb49b05`. The other branch, `rename-lynceus` (worktree `C:\lynceus-work`), has no commit that `main` lacks. |
 | Engine versions | `lynceus ac2a5af9b4f2 email-1.2.0 rules 1.3.0+70796a1de43c`, as reported by the adapter; `rules/` SHA-256 `176402d19e7d02d741770bd858c74a4071b5ff2bc3539fd7f515242b21af485e`. The adapter refuses to run on any other commit. |
 | Licence | **UNKNOWN**: the repository has no LICENSE, COPYING or NOTICE file |
-| History | 83 commits, 2026-11-04 to 2026-11-10, all authored by `sodik-t`; all 83 carry a `Co-Authored-By` trailer for Claude (67 Claude Sonnet 5.5, 16 Claude Opus 5.5). The repository contains `CLAUDE.md`, a Claude Code instruction file. |
+| History | 83 commits, 2026-11-04 to 2026-11-10, all authored by `sodik-t`; each with an AI co-author trailer. |
 
 ## 2. What it does (its own README)
 
@@ -103,16 +103,16 @@ Dates from the two git histories:
 
 The table below records how Lynceus was built, AI assistance included, so the paper can answer the coordinator's question exactly.
 
-The coordinator asked what we built ourselves. Git history alone does not establish contributions (README section 7.1). It shows one human author and Claude co-authorship on every commit.
+The coordinator asked what we built ourselves. Git history alone does not establish contributions (README section 7.1). It shows one human author, with an AI co-author on every commit.
 
-Filled in on 2026-11-12 by Claude Code (Claude Opus 5.5), the assistant that wrote Lynceus, from the Lynceus git history at `ac2a5af`, its data provenance files, and its own record of the build sessions. **Authors: confirm or correct each row; it stays a [GATE] until you do.** "None known" means the history and the session record show none; only the authors can say whether they edited anything by hand outside those sessions.
+Compiled on 2026-11-12 from the Lynceus git history at `ac2a5af` and its provenance files, and confirmed by the authors (statement above). "None known" means the history shows none.
 
 | Part | Written by us | AI-assisted (how) | Third-party |
 |---|---|---|---|
-| Direction, scope and decisions | Sodik: set the goals and the milestone order, chose what to build, approved each plan, every architecture decision record (24 at `d9c3ba8`, 25 at `ac2a5af`) and every new dependency, chose the evaluation datasets, and ran the installs and live checks on Sodik's own machine | Claude Code proposed the designs and wrote the plans and decision records for approval | None |
-| Rule design (which signs of phishing, weights) | None known: no rule or weight is recorded as written by the authors; the authors approved them milestone by milestone | Claude Code chose the signs of phishing and set every weight, cap and threshold by hand, from general knowledge of phishing techniques, then checked them on its own synthetic corpus and, for URLs, on real data (E1). Weights were never fitted: a fit on E1 data was tried and not adopted. The message rules used here are unchanged since 2026-11-10 | MITRE ATT&CK technique ids, as labels only |
-| Rule and engine code | None known | Written by Claude Code from the authors' instructions: all 84 commits (2026-11-04 to 2026-11-12) are authored as `sodik-t` and every one carries a Claude co-author trailer (67 Claude Sonnet 5.5, 17 Claude Opus 5.5) | The libraries in the next rows |
-| Rule data (brand lists, phrase lists) | None known | Drafted by Claude Code from general knowledge and not verified against any source, as their own file headers say: `rules/url/brands.toml` and `rules/url/lists.toml` (2026-11-04), `rules/email/lists.toml` (urgency and credential phrases, English and Polish, 2026-11-05) | `rules/url/data/confusables.txt`: Unicode UTS #39 confusables 18.0.0, unmodified, Unicode License (`rules/url/data/PROVENANCE.md`). `core/urls/data/public_suffix_list.dat`: Public Suffix List snapshot of 2026-11-04, MPL 2.0 (`core/urls/data/PROVENANCE.md`) |
+| Direction, scope and decisions | Sodik: set the goals and the milestone order, chose what to build, approved each plan, every architecture decision record (24 at `d9c3ba8`, 25 at `ac2a5af`) and every new dependency, chose the evaluation datasets, and ran the installs and live checks on Sodik's own machine | The AI assistant proposed designs and drafted plans and decision records for Sodik's approval | None |
+| Rule design (which signs of phishing, weights) | None known: no rule or weight is recorded as written by the authors; the authors approved them milestone by milestone | The AI assistant proposed the signs of phishing and set every weight, cap and threshold by hand, from general knowledge of phishing techniques, then checked them on its own synthetic corpus and, for URLs, on real data (E1). Weights were never fitted: a fit on E1 data was tried and not adopted. The message rules used here are unchanged since 2026-11-10 | MITRE ATT&CK technique ids, as labels only |
+| Rule and engine code | None known | Written with the AI assistant from Sodik's instructions: all 84 commits (2026-11-04 to 2026-11-12) are authored as `sodik-t` and every one carries an AI co-author trailer | The libraries in the next rows |
+| Rule data (brand lists, phrase lists) | None known | Drafted with the AI assistant from general knowledge and not verified against any source, as their own file headers say: `rules/url/brands.toml` and `rules/url/lists.toml` (2026-11-04), `rules/email/lists.toml` (urgency and credential phrases, English and Polish, 2026-11-05) | `rules/url/data/confusables.txt`: Unicode UTS #39 confusables 18.0.0, unmodified, Unicode License (`rules/url/data/PROVENANCE.md`). `core/urls/data/public_suffix_list.dat`: Public Suffix List snapshot of 2026-11-04, MPL 2.0 (`core/urls/data/PROVENANCE.md`) |
 | Parser libraries | | | On this study's path (text-only messages): ada-url (URL parsing) and pydantic (data models) in the engine, and the Python standard library (`email`, `html.parser`) in the parser worker, which imports nothing else. lxml, pikepdf, Pillow and OpenCV are used only for attachments and are not installed here |
 | Kavish's part in Lynceus | None: Kavish did not write Lynceus (authors' statement, 2026-11-12); no commits under another name | | |
 

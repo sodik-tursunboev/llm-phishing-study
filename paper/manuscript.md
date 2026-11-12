@@ -38,7 +38,7 @@ Our contribution is a careful measurement, not a new attack or a new detector. F
 
 ## 2. Related work
 
-Ferrell et al. [1] asked three LLMs to rephrase phishing and safe emails, then tested existing detectors on the results. Accuracy fell by 3–4% for BERT-based models and by 8–20% for Word2Vec and stylometric models, and retraining on rephrased emails restored it.
+Ferrell et al. [1] asked three LLMs to rephrase phishing and safe emails, then tested existing detectors on the results. Accuracy fell by 3–4% for BERT-based models and by 8–20% for Word2Vec and stylometric models, and retraining on rephrased emails improved it.
 
 Josten and Weis [2] rewrote spam with GPT-3.5 Turbo. SpamAssassin let up to 73.7% of the modified spam through as legitimate, while a simple dictionary-replacement attack succeeded at most 0.4% of the time. Afane et al. [3] report declines for Gmail, SpamAssassin, Proofpoint and classical classifiers on LLM-rephrased phishing.
 
@@ -238,7 +238,7 @@ We designed the study and took every methodological decision. We ran the experim
 
 [6] Apache SpamAssassin Project, "SpamAssassin public mail corpus." [Online]. Available: https://spamassassin.apache.org/old/publiccorpus/ (accessed Nov. 11, 2026).
 
-[7] M. M. Danilák, "langdetect 1.0.9," Python Package Index, May 2021. [Online]. Available: https://pypi.org/project/langdetect/1.0.9/
+[7] M. M. Danilak, "langdetect 1.0.9," Python Package Index, May 2021. [Online]. Available: https://pypi.org/project/langdetect/1.0.9/
 
 [8] G. A. Miller, "WordNet: A lexical database for English," *Commun. ACM*, vol. 38, no. 11, pp. 39–41, Nov. 1995, doi: 10.1145/219717.219748.
 
@@ -260,4 +260,4 @@ We designed the study and took every methodological decision. We ran the experim
 
 [17] S. Holm, "A simple sequentially rejective multiple test procedure," *Scand. J. Statist.*, vol. 6, no. 2, pp. 65–70, 1979. [Online]. Available: https://www.jstor.org/stable/4615733
 
-[18] Google, "Gemma prohibited use policy," last modified Feb. 21, 2024. [Online]. Available: https://ai.google.dev/gemma/prohibited_use_policy (accessed Nov. 11, 2026).
+[18] Google, "Gemma prohibited use policy," last modified Feb. 21, 2024. [Online]. Available: https://gemma.ai/resources/prohibited-use/ (accessed Nov. 12, 2026).

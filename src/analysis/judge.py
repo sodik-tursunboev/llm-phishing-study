@@ -2,8 +2,7 @@
 
 This replaces the two-author blind rating (authors' decision, DEVIATIONS.md #20). The judge is
 llama3.2:3b, a different model family from the generator, so the rewriter does not grade its own
-work. It runs on the host's Ollama, so no email text leaves the machine. Claude Code sees only
-counts. No inter-rater kappa is claimed: there is one model and one checking author.
+work. It runs on the host's Ollama, so no email text leaves the machine. No inter-rater kappa is claimed: there is one model and one checking author.
 
 python -m src.analysis.judge run      -> ratings/sheet_model.csv: the 30 pairs (same pairs as
     data/ratings_key.json), the model's four answers already filled in, and an EMPTY `checked` column
