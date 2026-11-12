@@ -1,0 +1,41 @@
+{
+  "pairs": 30,
+  "judge": "llama3.2:3b",
+  "checked_by": {
+    "Kavish": {
+      "pairs_checked": 30,
+      "answers": 120,
+      "answers_changed": 0
+    }
+  },
+  "questions": {
+    "same_action": {
+      "final_yes_rate": 0.7,
+      "model_answers_changed": 0,
+      "changed_pairs": []
+    },
+    "same_target": {
+      "final_yes_rate": 0.833,
+      "model_answers_changed": 0,
+      "changed_pairs": []
+    },
+    "same_urgency": {
+      "final_yes_rate": 0.733,
+      "model_answers_changed": 0,
+      "changed_pairs": []
+    },
+    "same_label": {
+      "final_yes_rate": 0.3,
+      "model_answers_changed": 0,
+      "changed_pairs": []
+    }
+  },
+  "equivalent_rate": 0.233,
+  "entry": {
+    "checked_by": "Kavish",
+    "pairs": 30,
+    "statement": "Kavish read all 30 pairs and agrees with every pre-filled answer; stated by Sodik Tursunboev on 2026-11-12",
+    "entered_by": "Claude Code, at the authors' request",
+    "date": "2026-11-12"
+  }
+}

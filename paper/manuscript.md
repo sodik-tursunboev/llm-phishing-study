@@ -39,7 +39,7 @@ Ferrell et al. [1] prompted three LLMs to rephrase phishing and safe emails. Rep
 
 Josten and Weis [2] modified spam with GPT-3.5 Turbo and report that SpamAssassin misclassified up to 73.7% of the modified spam as legitimate, against at most 0.4% for a dictionary-replacement attack. Afane et al. [3] report declines for Gmail, SpamAssassin, Proofpoint and classical classifiers on LLM-rephrased phishing.
 
-These studies report the drop after rewriting. We ask how much of it remains when the rewrite must keep the message's links, numbers and request, when the format is held fixed, and which layer it comes from. [AUTHORS: this summary is from the three abstracts; check it against the full papers.]
+We ask how much of such a drop remains when the rewrite must keep the links, numbers and request and the format is held fixed, and which layer it comes from. [AUTHORS: this summary is from the three abstracts; check it against the full papers.]
 
 ## 3. Method
 
@@ -111,18 +111,21 @@ The confirmatory test is phishing, at the calibrated threshold, llm versus null-
 
 An interval that excludes zero is read as a change. One inside ±2 points is read as "no change larger than 2 points". Anything else is inconclusive. A message with a scoring error on either side is excluded from that layer's contrast and counted. Every result is repeated on all rewrites, not only those passing the gates.
 
-We then separate *what moved* from *why*. Three facts make the movement traceable:
-- SpamAssassin's score is a sum of rule points;
-- the classifier's logit is a sum of token contributions;
-- Lynceus lists the rules that fired.
-
-So we can show which rules and words account for any change. A cause is claimed only where a rule-based edit, with no model involved, changed one property. The plain-text copy (null-A versus orig) is such an edit, of the format. Everything else is described as "consistent with".
+We then separate *what moved* from *why*. SpamAssassin's score is a sum of rule points, the classifier's logit is a sum of token contributions, and Lynceus lists the rules that fired, so we can show which rules and words account for a change. A cause is claimed only for a rule-based edit of one property: the plain-text copy, which changes only the format. Everything else is "consistent with".
 
 ## 4. Results
 
 ### 4.1 Rewrites
 
 We rewrote {{rewritten_total}} test emails. Another {{gates_phishing_not_rewritten_too_long}} phishing and {{gates_ham_not_rewritten_too_long}} legitimate emails were too long to rewrite; they are counted, not analysed. Every gate was passed by {{gates_phishing_passed}} of {{gates_phishing_rewritten}} phishing rewrites and {{gates_ham_passed}} of {{gates_ham_rewritten}} legitimate ones (Table 2). The model refused in {{refusals}} case. Most failures were rewrites that dropped links or numbers.
+
+In the 30-pair meaning check, the accepted judgments say the rewrite kept:
+- the requested action in {{judge_yes_same_action}} of pairs;
+- the target, links and names in {{judge_yes_same_target}};
+- the urgency in {{judge_yes_same_urgency}};
+- the category (phishing or legitimate) in only {{judge_yes_same_label}}.
+
+Only {{judge_equivalent_rate}} were equivalent on all four. {{judge_checks}}
 
 Kept rewrites came from shorter emails than discarded ones. For phishing, the medians were {{sel_phishing_kept_words}} against {{sel_phishing_discarded_words}} words, and {{sel_phishing_kept_urls}} against {{sel_phishing_discarded_urls}} links. The analysed pairs therefore over-represent short emails.
 
@@ -157,12 +160,7 @@ The largest change came from the format alone. Turning the original into its pla
 
 ### 4.4 What moved
 
-Under the LLM rewrite, the rule and token accounting shows small, scattered changes:
-- a few SpamAssassin rules for misspelled brand names stopped firing;
-- TF-IDF contributions shifted slightly on common words, far from its threshold;
-- Lynceus's social-engineering phrase rule started to fire in {{lynceus_social_starts}} of rewritten phishing emails.
-
-The Lynceus change is consistent with the model adding urgent, credential-requesting wording; we did not test that cause. The format effect, by contrast, is causal by design: the plain-text copy changes only the format, with no model involved.
+Under the LLM rewrite, the accounting shows only small changes for SpamAssassin (a few rules for misspelled brand names stopped firing) and TF-IDF (slight shifts on common words). Lynceus's social-engineering phrase rule started to fire in {{lynceus_social_starts}} of rewritten phishing emails. That is consistent with the model adding urgent, credential-requesting wording, a cause we did not test. The format effect, by contrast, is causal by design.
 
 **Table 1.** Share of messages flagged (%) at the dev-calibrated threshold, gate-passed pairs, per condition; the primary contrast (llm vs null-A) with its 95% cluster-bootstrap CI. The Holm p is given for the confirmatory family only.
 
@@ -174,11 +172,7 @@ The Lynceus change is consistent with the model adding urgent, credential-reques
 
 ## 5. Discussion and limitations
 
-Under this protocol, a faithful single-pass paraphrase by a small local model did not make phishing harder to detect for any of the three static layers. For Lynceus, it made phishing slightly easier to detect. This is a negative result for the feared effect, and it has a simple reading:
-- these layers draw their signal from links, headers, HTML structure and generic phishing vocabulary;
-- a rewrite that must keep the links, numbers and request keeps most of that signal;
-- a dictionary synonym swap removed some vocabulary and cost a few points;
-- removing the HTML structure cost much more.
+Under this protocol, a faithful single-pass paraphrase by a small local model did not make phishing harder to detect for any of the three static layers. For Lynceus, it made phishing slightly easier to detect. This is a negative result for the feared effect, with a simple reading. These layers draw their signal from links, headers, HTML structure and generic phishing vocabulary. A rewrite that must keep the links, numbers and request keeps most of that signal. A synonym swap removed some vocabulary and cost a few points; removing the HTML structure cost much more.
 
 This differs from the drops reported in [1]–[3]. Our setting differs in ways that may explain the gap; we tested none of them:
 - our SpamAssassin ran without its Bayesian component, which is central to [2];
@@ -189,6 +183,7 @@ This differs from the drops reported in [1]–[3]. Our setting differs in ways t
 What we add beyond [1] is a paired, per-layer test for static rule-based layers that separates wording from format.
 
 Alternative explanations remain:
+- **comparability is not established for the category of the message.** The meaning check judged only {{judge_yes_same_label}} of pairs to keep their category, which would mean many rewrites no longer read as their original. The detectors, however, scored the rewrites much like the originals. With one small judge model and 30 pairs, we cannot tell whether the rewrites or the judge are at fault [AUTHORS: revisit if the check is revised];
 - the analysed rewrites are those faithful enough to pass the gates, which favours short emails;
 - one small model with a neutral prompt is not an adaptive attacker;
 - the TF-IDF classifier sits near its ceiling, and Lynceus near its floor at the calibrated threshold, which limits what those contrasts can show.
@@ -202,7 +197,6 @@ The study also has deliberate limits:
 - We evaluate our own tool.
 - The meaning check covers only 30 pairs, judged by a small local model and checked by one author who saw the model's answers first.
 - Rewrites run on plain text, so the HTML structure of the original is not kept; null-A carries the same format, so the comparison is fair, but it is not the attacker's full message.
-- Only rewrites that kept every link and number are analysed; this is a selection, which we compare with the discarded rewrites.
 
 ## Declarations
 
@@ -218,7 +212,7 @@ The study also has deliberate limits:
 
 ## References
 
-<!-- IEEE style. Every entry below was opened on its official page on 2026-11-11/13 and is listed in references/evidence_trail.csv; Kavish verifies each one before submission. -->
+<!-- IEEE style. Every entry below was opened on its official page on 2026-11-11/12 and is listed in references/evidence_trail.csv; Kavish verifies each one before submission. -->
 
 [1] A. Ferrell, J. Xu, H. Moradi, R. E. Davis, and K. Roy, "Evaluating the effectiveness of existing phishing detectors on AI generated phishing emails," in *Proc. 2025 Cyber Awareness and Research Symposium (CARS)*, Grand Forks, ND, USA, Oct. 2025, doi: 10.1109/CARS67163.2025.11337548.
 
@@ -236,15 +230,15 @@ The study also has deliberate limits:
 
 [8] G. A. Miller, "WordNet: A lexical database for English," *Commun. ACM*, vol. 38, no. 11, pp. 39–41, Nov. 1995, doi: 10.1145/219717.219748.
 
-[9] NLTK Project, "NLTK: Natural Language Toolkit." [Online]. Available: https://www.nltk.org/ (accessed Nov. 13, 2026).
+[9] NLTK Project, "NLTK: Natural Language Toolkit." [Online]. Available: https://www.nltk.org/ (accessed Nov. 12, 2026).
 
 [10] Gemma Team, "Gemma 3 technical report," arXiv:2503.19786, Mar. 2025. [Online]. Available: https://arxiv.org/abs/2503.19786
 
-[11] Ollama, "Ollama," GitHub repository. [Online]. Available: https://github.com/ollama/ollama (accessed Nov. 13, 2026).
+[11] Ollama, "Ollama," GitHub repository. [Online]. Available: https://github.com/ollama/ollama (accessed Nov. 12, 2026).
 
 [12] Meta AI, "Llama 3.2: Revolutionizing edge AI and vision with open, customizable models," Sep. 25, 2024. [Online]. Available: https://ai.meta.com/blog/llama-3-2-connect-2024-vision-edge-mobile-devices/
 
-[13] Apache SpamAssassin Project, "Apache SpamAssassin." [Online]. Available: https://spamassassin.apache.org/ (accessed Nov. 13, 2026).
+[13] Apache SpamAssassin Project, "Apache SpamAssassin." [Online]. Available: https://spamassassin.apache.org/ (accessed Nov. 12, 2026).
 
 [14] F. Pedregosa *et al.*, "Scikit-learn: Machine learning in Python," *J. Mach. Learn. Res.*, vol. 12, no. 85, pp. 2825–2830, 2011. [Online]. Available: https://jmlr.org/papers/v12/pedregosa11a.html
 

@@ -82,6 +82,32 @@ def run():
 
 
 AUTHORS = {"sodik": "Sodik Tursunboev", "kavish": "Kavish"}  # what a checker types -> name in the paper
+ENTRY = pathlib.Path("data/judge_entry.json")  # who typed the names in, when it was not the checker
+
+
+def confirm(name, statement):
+    """Enter an author's confirmation that they agree with every pre-filled answer.
+
+    For an author who read every pair but could not save the sheet. Fills only empty `checked`
+    cells, changes no answer, and records who entered it and the author's statement, so the paper
+    says exactly that (DEVIATIONS.md #22). It never decides anything itself.
+    """
+    if checker(name) is None:
+        raise SystemExit(f"{name!r} is not an author name")
+    with open(SHEET, newline="", encoding="utf-8-sig") as f:
+        rows = list(csv.reader(f))
+    col = rows[0].index("checked")
+    data = [r for r in rows if r[0].startswith("P")]
+    if any(r[col].strip() for r in data):
+        raise SystemExit("some pairs are already checked; nothing changed")
+    for r in data:
+        r[col] = name
+    with open(SHEET, "w", newline="", encoding="utf-8-sig") as f:
+        csv.writer(f).writerows(rows)
+    ENTRY.write_text(json.dumps({"checked_by": checker(name), "pairs": len(data), "statement": statement,
+                                 "entered_by": "Claude Code, at the authors' request",
+                                 "date": __import__("datetime").date.today().isoformat()}, indent=2))
+    print(f"entered {checker(name)} as checker of {len(data)} pairs; no answer changed")
 
 
 def checker(text):
@@ -114,9 +140,11 @@ def summary():
                                "model_answers_changed": len(changed), "changed_pairs": changed}
     out["equivalent_rate"] = round(sum(all(final[p][q].strip().lower() == "yes" for q in QUESTIONS)
                                        for p in final) / len(final), 3)
+    if ENTRY.exists():  # the names were typed in on the checker's behalf: say so
+        out["entry"] = json.loads(ENTRY.read_text())
     pathlib.Path("results/judge.json").write_text(json.dumps(out, indent=2) + "\n")
     print(json.dumps(out, indent=2))
 
 
 if __name__ == "__main__":
-    {"run": run, "summary": summary}[sys.argv[1]]()
+    {"run": run, "summary": summary, "confirm": lambda: confirm(sys.argv[2], sys.argv[3])}[sys.argv[1]]()

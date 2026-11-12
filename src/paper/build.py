@@ -76,9 +76,14 @@ def values():
     if judge.exists():
         out = json.loads(judge.read_text())
         v["judge_equivalent_rate"] = f"{100 * out['equivalent_rate']:.0f}%"
+        for q, s in out["questions"].items():
+            v[f"judge_yes_{q}"] = f"{100 * s['final_yes_rate']:.0f}%"
         v["judge_checks"] = "; ".join(
             f"{name} checked {d['pairs_checked']} of {out['pairs']} pairs and changed {d['answers_changed']} "
             f"of {d['answers']} model answers" for name, d in out["checked_by"].items()) + "."
+        if "entry" in out:  # names typed in on the checker's behalf
+            v["judge_checks"] += (" The confirmation was entered into the sheet by Claude Code at the "
+                                  "authors' request, because the checker could not save the file.")
     ratings = pathlib.Path("results/ratings.json")
     if ratings.exists():
         out = json.loads(ratings.read_text())
@@ -133,8 +138,9 @@ def main():
     filled = re.sub(r"\{\{(\w+)\}\}", lambda m: fmt(v[m[1]]) if m[1] in v else f"[MISSING {m[1]}]", text)
     OUTPUT.write_text(filled, encoding="utf-8")
     body = filled.split("## Declarations")[0]  # abstract to discussion: what the 3,000-word guide counts
-    print(f"{OUTPUT}: {len(filled.split())} words in all, {len(body.split())} from title to discussion; "
-          f"missing: {', '.join(missing) or 'none'}")
+    prose = "\n".join(line for line in body.splitlines() if not line.lstrip().startswith("|"))  # tables aside
+    print(f"{OUTPUT}: {len(filled.split())} words in all; title to discussion {len(body.split())}, "
+          f"of which prose (tables excluded) {len(prose.split())}; missing: {', '.join(missing) or 'none'}")
 
 
 if __name__ == "__main__":
