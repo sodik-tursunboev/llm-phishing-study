@@ -126,7 +126,7 @@ We then separate *what moved* from *why*. SpamAssassin's score is a sum of rule 
 
 **Data and code.** Code, configurations, manifests, hashes and aggregate results: [AUTHORS: repository link]. Raw corpora are not redistributed; they are re-downloaded and verified by hash. Raw rewrites are available to reviewers on request.
 
-**Contributions.** Sodik Tursunboev designed and ran the study, and authored Lynceus before the study began (AI-assisted; see `LYNCEUS_NOTES.md`). Kavish [AUTHORS: surname] is the project partner: [AUTHORS: Kavish's tasks, e.g. verifying every reference and number against the result files]. Kavish did not write Lynceus. {{judge_checks}} Details in `CONTRIBUTIONS.md`.
+**Contributions.** Sodik Tursunboev designed and ran the study, and authored Lynceus before the study began (AI-assisted; see `LYNCEUS_NOTES.md`). Kavish [AUTHORS: surname] is the project partner, who checked the meaning judgments of the 30 rewrite pairs and verified every reference and every number against the result files. [AUTHORS: confirm once done.] Kavish did not write Lynceus. {{judge_checks}} Details in `CONTRIBUTIONS.md`.
 
 **Conflict of interest.** Lynceus is the first author's own tool.
 
