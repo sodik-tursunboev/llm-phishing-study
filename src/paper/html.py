@@ -33,8 +33,9 @@ code { font-family: Consolas, "Courier New", monospace; font-size: 9pt; }
 a { color: #1a4f8b; text-decoration: none; word-break: break-all; }
 table { width: 100%; border-collapse: collapse; font-size: 8pt; margin: 4pt 0 10pt;
         page-break-inside: avoid; font-family: Helvetica, Arial, sans-serif; }
-th, td { border: 0.5pt solid #999; padding: 2pt 3pt; text-align: center; }
-th { background: #eee; }
+table { border-top: 1pt solid #111; border-bottom: 1pt solid #111; }
+th, td { padding: 2pt 3pt; text-align: center; }
+th { border-bottom: 0.6pt solid #111; }
 td:first-child, td:nth-child(2) { text-align: left; }
 h2#references ~ p { font-size: 9pt; text-align: left; margin-bottom: 4pt; }
 p:has(+ table) { break-after: avoid; page-break-after: avoid; }

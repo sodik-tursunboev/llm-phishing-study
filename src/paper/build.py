@@ -101,7 +101,8 @@ def values():
     return v
 
 
-LAYER_NAMES = {"spamassassin": "SpamAssassin", "tfidf_lr": "TF-IDF + LR", "lynceus": "Lynceus"}
+LAYER_NAMES = {"spamassassin": "SpamAssassin", "tfidf_lr": "TF-IDF", "lynceus": "Lynceus"}
+READING = {"no change larger than 2 pp": "within ±2 pp"}  # the paper's reading rule, shortened for the table
 
 
 def table_main():
@@ -109,10 +110,10 @@ def table_main():
     rows = [r for r in _csv("results/primary_test.csv") if r["set"] == "gate_passed" and r["point"] == "calibrated"]
     get = {(r["layer"], r["class"], r["contrast"]): r for r in rows}
     pct = lambda x: f"{100 * float(x):.1f}"  # noqa: E731
-    out = ["| Layer | Class | n | orig | null-A | lex | llm | llm vs null-A (pp, 95% CI) | Holm p | Reading |",
+    out = ["| Layer | Class | *n* | orig | null-A | lex | llm | llm vs null-A (pp, 95% CI) | Holm *p* | Reading |",
            "|---|---|---|---|---|---|---|---|---|---|"]
     for layer, name in LAYER_NAMES.items():
-        for cls, label in (("phishing", "phishing (detected)"), ("ham", "legitimate (flagged)")):
+        for cls, label in (("phishing", "phishing"), ("ham", "legitimate")):
             fmt_ = get.get((layer, cls, "null_a vs orig"))
             llm, lex = get.get((layer, cls, "llm vs null_a")), get.get((layer, cls, "lex vs null_a"))
             if not (fmt_ and llm and lex):
@@ -120,7 +121,7 @@ def table_main():
             out.append(f"| {name} | {label} | {llm['n']} | {pct(fmt_['rate_a'])} | {pct(llm['rate_a'])} | "
                        f"{pct(lex['rate_b'])} | {pct(llm['rate_b'])} | {float(llm['net_pp']):+.1f} "
                        f"[{float(llm['ci_low_pp']):+.1f}, {float(llm['ci_high_pp']):+.1f}] | "
-                       f"{llm['holm_p'] or '–'} | {llm['reading']} |")
+                       f"{llm['holm_p'] or '–'} | {READING.get(llm['reading'], llm['reading'])} |")
     return "\n".join(out)
 
 
@@ -129,7 +130,7 @@ def table_gates():
     rows = _csv("results/gates_test.csv")
     names = {"refusal": "Refusal", "meta_text": "Meta-text", "urls": "Links", "numbers": "Numbers",
              "entities": "Entities", "length": "Length", "language": "Language",
-             "not_rewritten_too_long": "Too long to rewrite"}
+             "not_rewritten_too_long": "Too long"}
     gates = [k for k in rows[0] if k not in ("label", "rewritten", "passed")]
     out = ["| Class | Rewritten | Passed | " + " | ".join(names.get(g, g) for g in gates) + " |",
            "|---|---|---|" + "---|" * len(gates)]
@@ -149,9 +150,9 @@ def main():
     missing = sorted(set(re.findall(r"\{\{(\w+)\}\}", text)) - set(v))
     filled = re.sub(r"\{\{(\w+)\}\}", lambda m: fmt(v[m[1]]) if m[1] in v else f"[MISSING {m[1]}]", text)
     OUTPUT.write_text(filled, encoding="utf-8")
-    body = filled.split("## Declarations")[0]  # abstract to discussion: what the 3,000-word guide counts
+    body = filled.split("## Declarations")[0]  # title to conclusion: what the 3,000-word limit counts
     prose = "\n".join(line for line in body.splitlines() if not line.lstrip().startswith("|"))  # tables aside
-    print(f"{OUTPUT}: {len(filled.split())} words in all; title to discussion {len(body.split())}, "
+    print(f"{OUTPUT}: {len(filled.split())} words in all; title to conclusion {len(body.split())}, "
           f"of which prose (tables excluded) {len(prose.split())}; missing: {', '.join(missing) or 'none'}")
 
 
