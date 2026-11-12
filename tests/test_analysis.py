@@ -27,5 +27,15 @@ def test_margin_reading_follows_the_protocol_order():
     assert reading(-4.0, 1.0) == "inconclusive"
 
 
+def test_intervention_edit_changes_only_listed_words_and_never_links():
+    from src.analysis.intervention import edit
+
+    text = "Verify your account at http://example.com/verify today. Account closure follows."
+    out = edit(text, ["verify", "account"])
+    assert "http://example.com/verify" in out and "today" in out
+    assert "Verify" not in out.replace("http://example.com/verify", "") and "account" not in out.lower().replace(
+        "http://example.com/verify", "")
+
+
 def test_holm():
     assert holm([0.01, 0.04, 0.03]) == pytest.approx([0.03, 0.06, 0.06])
