@@ -1,6 +1,6 @@
 # Protocol (frozen at tag `protocol-freeze-v1`)
 
-**Status: DRAFT, awaiting the authors' approval ([GATE], README M4).** Nothing below may change after the tag without an entry in `DEVIATIONS.md`, and any change that affects scoring triggers a full re-run of all conditions. All code is frozen by the tag's commit. This file lists the parameters a reader needs.
+**Status: FROZEN.** Approved by the first author on 2026-11-12 ([GATE], README M4), and tagged `protocol-freeze-v1`. Lynceus was frozen first, at `lynceus-eval-v1`. Nothing below may change after the tag without an entry in `DEVIATIONS.md`, and any change that affects scoring triggers a full re-run of all conditions. All code is frozen by the tag's commit. This file lists the parameters a reader needs.
 
 ## Research question
 
@@ -36,7 +36,7 @@ A rewrite is analysed only if, compared with its `null_a` text:
 
 Failures are counted per gate. Kept and discarded messages are compared on length, links and HTML share (selection bias).
 
-**Human check:** both authors independently rate the same 30 gate-passing test pairs (15 per class, seed 2026), blind to class and detector output. We report agreement and Cohen's kappa per question, and the share judged equivalent. Embedding similarity was dropped (`DEVIATIONS.md`).
+**Human check:** both authors independently rate the same 30 test pairs, blind to class and detector output. The pairs are the first 15 gate-passing rewrites per class in generation order, which is itself seeded random; they are shown in an order shuffled with seed 2026. We report agreement and Cohen's kappa per question, and the share judged equivalent. Embedding similarity was dropped (`DEVIATIONS.md`).
 
 ## 4. Detectors (static, offline)
 

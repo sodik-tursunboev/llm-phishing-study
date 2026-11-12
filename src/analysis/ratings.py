@@ -3,8 +3,10 @@
 python -m src.analysis.ratings make    ->  ratings/sheet_sodiq.csv and ratings/sheet_kavish.csv
 python -m src.analysis.ratings kappa   ->  results/ratings.json (agreement and Cohen's kappa)
 
-The 30 pairs are 15 phishing and 15 legitimate test messages whose rewrite passed every gate,
-drawn with seed 2026 and shown in shuffled order without labels or detector output. Links and
+The 30 pairs are the first 15 phishing and first 15 legitimate test rewrites that pass every gate,
+in generation order (itself a seeded random order, so this is a random sample, and the same 30 pairs
+come out however far generation has run). They are shown in an order shuffled with seed 2026,
+without labels or detector output. Links and
 addresses are defanged (hxxp, [.], [at]) so nothing in the sheet is clickable. The sheets hold email
 text, so ratings/ is git-ignored; the key (pair -> message id) stays in the private data volume.
 """
@@ -36,12 +38,14 @@ def defang(text):
 
 
 def make():
-    passed = [(m, r) for m, r in rewritten("test") if not check(plain_body(m), clean(r))]
-    rng = random.Random(2026)
+    passed = [(m, r) for m, r in rewritten("test") if not check(plain_body(m), clean(r))]  # generation order
     chosen = []
     for label in ("phishing", "ham"):
-        chosen += rng.sample([p for p in passed if p[0]["label"] == label], 15)
-    rng.shuffle(chosen)
+        mine = [p for p in passed if p[0]["label"] == label][:15]
+        if len(mine) < 15:
+            raise SystemExit(f"only {len(mine)} gate-passing {label} rewrites so far; need 15")
+        chosen += mine
+    random.Random(2026).shuffle(chosen)
     KEY.write_text(json.dumps({f"P{i:02d}": m["id"] for i, (m, _) in enumerate(chosen, 1)}, indent=2))
     pathlib.Path("ratings").mkdir(exist_ok=True)
     for rater in RATERS:
