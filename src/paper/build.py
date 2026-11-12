@@ -69,6 +69,9 @@ def values():
             v |= {f"gates_{r['label']}_{k}": int(r[k]) for k in r if k != "label"}
         v["refusals"] = v["gates_phishing_refusal"] + v["gates_ham_refusal"]
         v["rewritten_total"] = v["gates_phishing_rewritten"] + v["gates_ham_rewritten"]
+    ids = pathlib.Path("paper/authors.local.json")  # git-ignored: IDs reach the PDF, never the repository
+    if ids.exists():
+        v["student_ids"] = ", ".join(f"{a['name']} {a['student_id']}" for a in json.loads(ids.read_text())["authors"])
     judge = pathlib.Path("results/judge.json")
     if judge.exists():
         out = json.loads(judge.read_text())
@@ -129,7 +132,9 @@ def main():
     missing = sorted(set(re.findall(r"\{\{(\w+)\}\}", text)) - set(v))
     filled = re.sub(r"\{\{(\w+)\}\}", lambda m: fmt(v[m[1]]) if m[1] in v else f"[MISSING {m[1]}]", text)
     OUTPUT.write_text(filled, encoding="utf-8")
-    print(f"{OUTPUT}: {len(filled.split())} words; missing: {', '.join(missing) or 'none'}")
+    body = filled.split("## Declarations")[0]  # abstract to discussion: what the 3,000-word guide counts
+    print(f"{OUTPUT}: {len(filled.split())} words in all, {len(body.split())} from title to discussion; "
+          f"missing: {', '.join(missing) or 'none'}")
 
 
 if __name__ == "__main__":

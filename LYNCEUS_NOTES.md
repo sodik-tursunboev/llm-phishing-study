@@ -93,7 +93,7 @@ The new detonation code is not on the path this study uses.
 
 ## 9. Authorship split (answered by the authors on 2026-11-12)
 
-**Authors' statement:** Lynceus was authored by Sodik Tursunboev before this study. Kavish [surname] is Sodik's partner in this study and did not write Lynceus.
+**Authors' statement:** Lynceus was authored by Sodik Tursunboev before this study. Kavish Chaudhari is Sodik's partner in this study and did not write Lynceus.
 
 Dates from the two git histories:
 - Lynceus's first commit is 2026-11-04.

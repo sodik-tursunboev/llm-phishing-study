@@ -2,7 +2,7 @@
 
 Controlled, offline, reproducible study · Vistula University · Architecture of Computers 2026/27 · Student Research Challenge
 
-**Authors:** Sodik Tursunboev, Kavish [surname] (pair)
+**Authors:** Sodik Tursunboev, Kavish Chaudhari (pair)
 **Official topic:** The Evasion Capabilities of LLM-Generated Phishing Payloads Against Static Security Architectures
 **Version:** v1 · 2026-11-11 · **Scope update v3 (2026-11-11) supersedes parts of this brief; every change is listed in `DEVIATIONS.md`.**
 

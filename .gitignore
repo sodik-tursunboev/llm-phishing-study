@@ -7,6 +7,8 @@
 
 # Generated from paper/manuscript.md by src/paper/build.py
 paper/manuscript_filled.md
+# Student IDs: in the PDF only, never in git (README section 4)
+paper/*.local.json
 
 # Python caches
 __pycache__/
