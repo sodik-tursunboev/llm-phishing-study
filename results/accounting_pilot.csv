@@ -1,0 +1,17 @@
+layer,item,mean_change
+spamassassin,ACCT_PHISHING_MANY,-0.0625
+tfidf_lr,ve,-0.0566
+tfidf_lr,subject,-0.0521
+tfidf_lr,click here,-0.0476
+tfidf_lr,that,-0.0475
+tfidf_lr,below,-0.04
+tfidf_lr,re,-0.0312
+tfidf_lr,click,-0.0271
+tfidf_lr,the,-0.0236
+tfidf_lr,at,-0.0216
+tfidf_lr,protect,-0.0201
+tfidf_lr,information,-0.0192
+tfidf_lr,we ve,-0.0174
+tfidf_lr,sent,-0.0161
+tfidf_lr,may,-0.0145
+tfidf_lr,as,-0.0129
