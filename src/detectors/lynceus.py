@@ -20,7 +20,8 @@ sys.path.insert(0, str(ROOT))
 from core import sandbox  # noqa: E402  (Lynceus modules from here on)
 from core.contracts import VerdictState  # noqa: E402
 from core.email.engine import ENGINE_VERSION, analyze_message  # noqa: E402
-from rules.email.data import ruleset_version  # noqa: E402
+from core.risk.scoring import score as lynceus_scoring  # noqa: E402  (its own arithmetic)
+from rules.email.data import ruleset_version, scoring  # noqa: E402
 
 PINNED = "d9c3ba88f9b995d9079434d39ad8d977dbb49b05"  # the evaluated version (LYNCEUS_NOTES.md)
 COMMIT = (ROOT / "COMMIT").read_text().strip()
@@ -68,17 +69,40 @@ def _run_worker(script, stdin=b"", limits=sandbox.Limits()):
 sandbox.run = _run_worker  # the engine looks sandbox.run up at call time
 
 
+def full_range_score(verdict):
+    """Lynceus's risk score (0-100) for a verdict, also below its SUSPICIOUS line.
+
+    Why: Lynceus computes a risk from the rules that fired for every message, but reports it only
+    when the verdict is SUSPICIOUS or MALICIOUS (45 and above); an UNKNOWN verdict carries None. A
+    dev-calibrated threshold and a paired score shift need a score for every message
+    (PROTOCOL.md section 4). How: Lynceus's own scoring function is run again on the same signals
+    with its SUSPICIOUS line set to 0, which makes it return the risk it otherwise discards. The
+    message engine always scores with `score(signals, False, scoring())`; nothing else changes,
+    so no rule, weight or cap of Lynceus is touched. A message with no rule fired scores 0.
+    """
+    if verdict.risk_score is not None:
+        return verdict.risk_score
+    if not verdict.signals:
+        return 0
+    cfg = scoring()
+    probe = {**cfg, "thresholds": {**cfg["thresholds"], "suspicious": 0}}
+    return lynceus_scoring(verdict.signals, False, probe).risk_score
+
+
 def score(msg):
     """Common interface: one normalised message in, Lynceus's verdict out. Never raises.
 
     An ERROR or an unscored verdict (the engine gives a reason) is reported as an error with
-    flagged=None: it is never counted as benign or as flagged (README section 5.4).
+    flagged=None and score=None: it is never counted as benign or as flagged (README section 5.4).
+    `score` is the full-range risk (full_range_score); `reported_score` is what Lynceus itself
+    reports (None for UNKNOWN), kept for the record.
     """
     report = analyze_message(render(msg)).report
     verdict = report.verdict
     error = report.reason or ("error" if verdict.state is VerdictState.ERROR else None)
     return {
-        "score": verdict.risk_score,
+        "score": None if error else full_range_score(verdict),
+        "reported_score": verdict.risk_score,
         "flagged": None if error else verdict.state in FLAGGED,
         "state": verdict.state.value,
         "evidence": sorted(s.rule_id for s in verdict.signals),

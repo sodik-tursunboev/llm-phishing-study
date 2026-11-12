@@ -35,6 +35,53 @@ def test_plain_message_is_scored_not_flagged():
     assert result["error"] is None and result["flagged"] is False
 
 
+def test_reported_scores_are_passed_through_unchanged():
+    result = lynceus.score(PHISH)
+    assert result["reported_score"] is not None and result["score"] == result["reported_score"]
+
+
+def test_an_unknown_verdict_gets_its_score_below_the_line():
+    """Lynceus reports no score for UNKNOWN; the adapter gives the risk it computed (PROTOCOL 4)."""
+    weak = message("<p>Please see the schedule for next week.</p>", sender="Alice <alice@example.org>")
+    weak["headers"].append(("Reply-To", "billing@other-company.example.net"))
+    result = lynceus.score(weak)
+    assert result["state"] == "UNKNOWN" and result["reported_score"] is None
+    assert result["evidence"] and 0 < result["score"] < 45 and result["flagged"] is False
+
+
+def test_nothing_fired_scores_zero():
+    result = lynceus.score(message("<p>Lunch at noon?</p>", sender="Alice <alice@example.org>"))
+    assert result["evidence"] == [] and result["score"] == 0 and result["reported_score"] is None
+
+
+def test_full_range_score_is_lynceus_own_arithmetic():
+    """Over many random sets of Lynceus's own rules: whenever Lynceus reports a score, the full-range
+    score is that same number; whenever it reports none, the full-range score is below its line."""
+    import random
+    from types import SimpleNamespace
+
+    from core.contracts import Signal
+    from rules.email import RULES
+
+    cfg = lynceus.scoring()
+    weights = cfg["weights"]
+    rules = [(r.id, r.category) for r in RULES if r.id in weights]
+    rng = random.Random(2026)
+    reported = unreported = 0
+    for _ in range(3000):
+        picked = rng.sample(rules, rng.randint(1, 6))
+        signals = [Signal(rule_id=i, category=c, weight=weights[i], description=i) for i, c in picked]
+        own = lynceus.lynceus_scoring(signals, False, cfg).risk_score
+        full = lynceus.full_range_score(SimpleNamespace(risk_score=None, signals=signals))
+        if own is None:
+            unreported += 1
+            assert 0 <= full < cfg["thresholds"]["suspicious"]
+        else:
+            reported += 1
+            assert full == own
+    assert reported > 100 and unreported > 100  # both branches were exercised
+
+
 def test_worker_failure_is_an_error_not_a_verdict(monkeypatch):
     def timed_out(script, stdin=b"", limits=sandbox.Limits()):
         return sandbox.Result(False, b"", "timeout", None, 0.0, 0.0, 0.0, 0)
@@ -42,3 +89,4 @@ def test_worker_failure_is_an_error_not_a_verdict(monkeypatch):
     monkeypatch.setattr(sandbox, "run", timed_out)
     result = lynceus.score(PHISH)
     assert result["error"] == "parser_timeout" and result["flagged"] is None
+    assert result["score"] is None  # an error never gets a score
