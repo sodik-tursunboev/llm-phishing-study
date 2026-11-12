@@ -2,6 +2,8 @@
 /data/
 *.eml
 *.mbox
+# The blind rating sheets hold email text (src/analysis/ratings.py)
+/ratings/
 
 # Generated from paper/manuscript.md by src/paper/build.py
 paper/manuscript_filled.md

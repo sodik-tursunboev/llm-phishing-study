@@ -1,2 +1,4 @@
 # The hook is a shell script; CRLF line endings (Windows checkouts) would break it.
 hooks/pre-commit text eol=lf
+# Prompts are hashed byte for byte (README 5.2), so their line endings must never change.
+prompts/* text eol=lf

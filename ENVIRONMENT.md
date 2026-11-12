@@ -72,6 +72,17 @@ docker run --rm -v "${PWD}:/work" -v llm-phishing-data:/work/data llm-phishing-s
 docker run --rm --network none -v "${PWD}:/work" -v llm-phishing-data:/work/data llm-phishing-study python -m src.rewrite.pilot
 ```
 
+Main run (M5). Generation stops when 200 rewrites per class pass the gates. Scoring of the conditions and the analysis run offline, and only after the freeze (PROTOCOL.md). The rating sheets go to `ratings/` (git-ignored); `kappa` reads them back once both authors have filled them in:
+
+```bash
+docker run --rm -v "${PWD}:/work" -v llm-phishing-data:/work/data llm-phishing-study python -m src.rewrite.generate test 200
+docker run --rm --network none -v "${PWD}:/work" -v llm-phishing-data:/work/data -v lynceus-src:/opt/lynceus:ro llm-phishing-study python -m src.analysis.score spamassassin test
+docker run --rm --network none -v "${PWD}:/work" -v llm-phishing-data:/work/data -v lynceus-src:/opt/lynceus:ro llm-phishing-study python -m src.analysis.primary test
+docker run --rm --network none -v "${PWD}:/work" -v llm-phishing-data:/work/data llm-phishing-study python -m src.analysis.ratings make
+```
+
+(`score` runs once per layer: `spamassassin`, `tfidf_lr`, `lynceus`.)
+
 Check command (all tests, offline):
 
 ```bash

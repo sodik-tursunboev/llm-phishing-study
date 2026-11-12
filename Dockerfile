@@ -11,6 +11,11 @@ RUN apt-get update \
 COPY requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
+# WordNet 3.0 for the lex baseline (src/rewrite/lex.py), checked against the hash recorded at M3.
+RUN python -m nltk.downloader -q -d /usr/share/nltk_data wordnet \
+ && echo "cbda5ea6eef7f36a97a43d4a75f85e07fccbb4f23657d27b4ccbc93e2646ab59  /usr/share/nltk_data/corpora/wordnet.zip" \
+    | sha256sum -c -
+
 # Keep the mounted repo free of bytecode caches.
 ENV PYTHONDONTWRITEBYTECODE=1
 WORKDIR /work

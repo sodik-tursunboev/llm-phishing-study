@@ -14,7 +14,7 @@ from collections import Counter
 from src.data.emails import plain_body
 from src.detectors import spamassassin, tfidf_lr
 from src.rewrite.conditions import change_fraction, null_a, with_body
-from src.rewrite.gates import GATES, check
+from src.rewrite.gates import GATES, check, clean
 
 LAYERS = {"spamassassin": spamassassin, "tfidf_lr": tfidf_lr}
 
@@ -37,13 +37,13 @@ def main():
         if r["error"]:
             failures[r["error"]] += 1
             continue
-        base = plain_body(msgs[mid])
-        failed = check(base, r["response"]) + ([] if r["done_reason"] == "stop" else ["truncated"])
+        base, rewrite = plain_body(msgs[mid]), clean(r["response"])
+        failed = check(base, rewrite) + ([] if r["done_reason"] == "stop" else ["truncated"])
         failures.update(failed)
-        ratios.append(len(r["response"].split()) / max(1, len(base.split())))
+        ratios.append(len(rewrite.split()) / max(1, len(base.split())))
         if not failed:
             passed.append(mid)
-            doses.append(change_fraction(base, r["response"]))
+            doses.append(change_fraction(base, rewrite))
 
     detection = {}
     for name, layer in LAYERS.items():
@@ -51,7 +51,7 @@ def main():
         for label in ("phishing", "ham"):
             ids = [i for i in passed if msgs[i]["label"] == label]
             for cond, make in (("orig", lambda m: m), ("null_a", null_a),
-                               ("llm", lambda m: with_body(m, rewrites[m["id"]]["response"]))):
+                               ("llm", lambda m: with_body(m, clean(rewrites[m["id"]]["response"])))):
                 scores = [layer.score(make(msgs[i])) for i in ids]
                 detection[f"{name} {label} {cond}"] = {
                     "native": round(sum(s["flagged"] for s in scores) / max(1, len(ids)), 3),
