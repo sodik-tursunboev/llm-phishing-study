@@ -1,0 +1,25 @@
+layer,item,mean_change
+spamassassin,XPRIO,-0.06
+spamassassin,FUZZY_APPLE,-0.005
+spamassassin,ACCT_PHISHING_MANY,-0.005
+spamassassin,END_FUTURE_EMAILS,-0.005
+spamassassin,FUZZY_PAYPAL,-0.005
+spamassassin,TVD_PH_REC,-0.004
+spamassassin,UPPERCASE_50_75,-0.0
+tfidf_lr,ve,-0.057
+tfidf_lr,subject,-0.0399
+tfidf_lr,re,-0.0313
+tfidf_lr,will,-0.0265
+tfidf_lr,mail,-0.0232
+tfidf_lr,below,-0.0231
+tfidf_lr,you have,-0.0201
+tfidf_lr,don,-0.0186
+tfidf_lr,we have,-0.0181
+tfidf_lr,we ve,-0.0167
+tfidf_lr,click,-0.0164
+tfidf_lr,our,-0.0164
+tfidf_lr,you are,-0.016
+tfidf_lr,you will,-0.0145
+tfidf_lr,that,-0.0141
+lynceus,email.social_engineering starts,0.15
+lynceus,email.social_engineering stops,0.01

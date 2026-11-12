@@ -42,13 +42,33 @@ def values():
     primary = pathlib.Path("results/primary_test.csv")
     if primary.exists():
         for r in _csv(primary):
-            if r["set"] == "gate_passed":
-                key = f"{r['layer']}_{r['class']}_{r['point']}_{r['contrast'].replace(' ', '_')}"
-                v |= {f"{key}_{k}": r[k] for k in r if k not in ("layer", "set", "class", "point", "contrast")}
+            prefix = "" if r["set"] == "gate_passed" else "all_"  # all_ = sensitivity on all rewrites
+            key = f"{prefix}{r['layer']}_{r['class']}_{r['point']}_{r['contrast'].replace(' ', '_')}"
+            v |= {f"{key}_{k}": r[k] for k in r if k not in ("layer", "set", "class", "point", "contrast")}
+            # Ready-to-print forms: rates as %, the change with its sign, the interval in brackets.
+            v[f"{key}_a_pct"] = f"{100 * float(r['rate_a']):.1f}%"
+            v[f"{key}_b_pct"] = f"{100 * float(r['rate_b']):.1f}%"
+            v[f"{key}_signed"] = f"{float(r['net_pp']):+.1f}"
+            v[f"{key}_ci"] = f"[{float(r['ci_low_pp']):+.1f}, {float(r['ci_high_pp']):+.1f}]"
+    selection = pathlib.Path("results/selection_test.csv")
+    if selection.exists():
+        for r in _csv(selection):
+            v[f"sel_{r['label']}_{r['group']}_words"] = r["median_words"].removesuffix(".0")
+            v[f"sel_{r['label']}_{r['group']}_urls"] = r["median_urls"].removesuffix(".0")
+    accounting = pathlib.Path("results/accounting_test.csv")
+    if accounting.exists():
+        for r in _csv(accounting):
+            if r["item"] == "email.social_engineering starts":
+                v["lynceus_social_starts"] = f"{100 * float(r['mean_change']):.0f}%"
+    if primary.exists():
+        v["table_main"] = table_main()
     gates = pathlib.Path("results/gates_test.csv")
     if gates.exists():
+        v["table_gates"] = table_gates()
         for r in _csv(gates):
             v |= {f"gates_{r['label']}_{k}": int(r[k]) for k in r if k != "label"}
+        v["refusals"] = v["gates_phishing_refusal"] + v["gates_ham_refusal"]
+        v["rewritten_total"] = v["gates_phishing_rewritten"] + v["gates_ham_rewritten"]
     judge = pathlib.Path("results/judge.json")
     if judge.exists():
         out = json.loads(judge.read_text())
@@ -63,6 +83,40 @@ def values():
         for q, s in out["questions"].items():
             v[f"kappa_{q}"], v[f"agreement_{q}"] = s["cohen_kappa"], f"{100 * s['agreement']:.0f}%"
     return v
+
+
+LAYER_NAMES = {"spamassassin": "SpamAssassin", "tfidf_lr": "TF-IDF + LR", "lynceus": "Lynceus"}
+
+
+def table_main():
+    """Table 1: flag rate per condition (calibrated threshold, gate-passed pairs) and the primary change."""
+    rows = [r for r in _csv("results/primary_test.csv") if r["set"] == "gate_passed" and r["point"] == "calibrated"]
+    get = {(r["layer"], r["class"], r["contrast"]): r for r in rows}
+    pct = lambda x: f"{100 * float(x):.1f}"  # noqa: E731
+    out = ["| Layer | Class | n | orig | null-A | lex | llm | llm vs null-A (pp, 95% CI) | Holm p | Reading |",
+           "|---|---|---|---|---|---|---|---|---|---|"]
+    for layer, name in LAYER_NAMES.items():
+        for cls, label in (("phishing", "phishing (detected)"), ("ham", "legitimate (flagged)")):
+            fmt_ = get.get((layer, cls, "null_a vs orig"))
+            llm, lex = get.get((layer, cls, "llm vs null_a")), get.get((layer, cls, "lex vs null_a"))
+            if not (fmt_ and llm and lex):
+                continue
+            out.append(f"| {name} | {label} | {llm['n']} | {pct(fmt_['rate_a'])} | {pct(llm['rate_a'])} | "
+                       f"{pct(lex['rate_b'])} | {pct(llm['rate_b'])} | {float(llm['net_pp']):+.1f} "
+                       f"[{float(llm['ci_low_pp']):+.1f}, {float(llm['ci_high_pp']):+.1f}] | "
+                       f"{llm['holm_p'] or '–'} | {llm['reading']} |")
+    return "\n".join(out)
+
+
+def table_gates():
+    """Table 2: rewrites, gate passes and failures per class."""
+    rows = _csv("results/gates_test.csv")
+    gates = [k for k in rows[0] if k not in ("label", "rewritten", "passed")]
+    out = ["| Class | Rewritten | Passed | " + " | ".join(gates) + " |", "|---|---|---|" + "---|" * len(gates)]
+    for r in rows:
+        name = "phishing" if r["label"] == "phishing" else "legitimate"
+        out.append(f"| {name} | {r['rewritten']} | {r['passed']} | " + " | ".join(r[g] for g in gates) + " |")
+    return "\n".join(out)
 
 
 def fmt(value):

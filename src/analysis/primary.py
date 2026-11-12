@@ -64,11 +64,22 @@ def gate_table(pairs):
     return passed, gates, selection
 
 
+def not_rewritten(split):
+    """Messages the generator skipped (e.g. too_long), per class, so every message is accounted for."""
+    with open("data/messages.jsonl", encoding="utf-8") as f:
+        label = {m["id"]: m["label"] for m in map(json.loads, f) if m["split"] == split}
+    with open(f"data/rewrites/llm_{split}.jsonl", encoding="utf-8") as f:
+        return Counter(label[r["id"]] for r in map(json.loads, f) if r.get("error"))
+
+
 def main(split, layers):
     pairs = rewritten(split)
     label = {m["id"]: m["label"] for m, _ in pairs}
     cluster = {m["id"]: m["cluster"] for m, _ in pairs}
     passed, gates, selection = gate_table(pairs)
+    skipped = not_rewritten(split)
+    for row in gates:
+        row["not_rewritten_too_long"] = skipped[row["label"]]
     thresholds = json.loads(pathlib.Path("configs/thresholds.json").read_text())["layers"]
     rows = []
     for layer in layers:

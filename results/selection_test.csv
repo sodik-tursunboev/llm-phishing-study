@@ -1,0 +1,5 @@
+label,group,n,median_words,median_urls,pct_html
+phishing,kept,200,95.0,2.5,94.0
+phishing,discarded,235,230,4,95.3
+ham,kept,200,109.5,1.0,2.0
+ham,discarded,352,147.0,1.0,3.4

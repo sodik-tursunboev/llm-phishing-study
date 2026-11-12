@@ -1,0 +1,3 @@
+label,rewritten,passed,refusal,meta_text,urls,numbers,entities,length,language,not_rewritten_too_long
+phishing,435,200,0,2,165,162,27,80,0,1
+ham,552,200,1,3,133,270,140,45,0,21
