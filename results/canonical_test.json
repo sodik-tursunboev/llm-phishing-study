@@ -1,0 +1,24 @@
+{
+  "phishing": {
+    "n": 200,
+    "pct_with_html_part": 94.0,
+    "pct_html_only_converted_to_text": 64.0,
+    "pct_html_part_dropped_plain_part_kept": 30.0,
+    "median_distinct_urls_orig": 2.5,
+    "median_distinct_urls_null_a": 1.0,
+    "pct_losing_at_least_one_url": 71.0,
+    "pct_gaining_a_url": 4.0,
+    "pct_tfidf_input_changed": 64.0
+  },
+  "ham": {
+    "n": 200,
+    "pct_with_html_part": 2.0,
+    "pct_html_only_converted_to_text": 0.0,
+    "pct_html_part_dropped_plain_part_kept": 2.0,
+    "median_distinct_urls_orig": 1.0,
+    "median_distinct_urls_null_a": 1.0,
+    "pct_losing_at_least_one_url": 1.5,
+    "pct_gaining_a_url": 0.0,
+    "pct_tfidf_input_changed": 0.0
+  }
+}

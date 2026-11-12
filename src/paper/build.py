@@ -69,6 +69,11 @@ def values():
             v |= {f"gates_{r['label']}_{k}": int(r[k]) for k in r if k != "label"}
         v["refusals"] = v["gates_phishing_refusal"] + v["gates_ham_refusal"]
         v["rewritten_total"] = v["gates_phishing_rewritten"] + v["gates_ham_rewritten"]
+    canonical = pathlib.Path("results/canonical_test.json")
+    if canonical.exists():  # what orig -> null-A changes (src/analysis/canonical.py)
+        for label, stats in json.loads(canonical.read_text()).items():
+            for k, x in stats.items():
+                v[f"canon_{label}_{k}"] = f"{x:g}%" if k.startswith("pct") else f"{x:g}"
     ids = pathlib.Path("paper/authors.local.json")  # git-ignored: IDs reach the PDF, never the repository
     if ids.exists():
         v["student_ids"] = ", ".join(f"{a['name']} {a['student_id']}" for a in json.loads(ids.read_text())["authors"])
