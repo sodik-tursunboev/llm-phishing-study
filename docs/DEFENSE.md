@@ -58,9 +58,9 @@ Gates check facts (links, numbers), not meaning. A rewrite could keep every link
   - at its default threshold, canonicalization cut it from 55% to 29.5%.
 - **The improvement made during the study** changed no verdict on our data: 997 of 997 dev messages were identical before and after (DEVIATIONS #17).
 
-## 7. What we add beyond Ferrell et al. [1]
+## 7. What we add beyond Ferrell et al. [2]
 
-[1] measured machine-learning detectors (BERT, Word2Vec, stylometric) on rephrased emails and found 3–20% drops. We add:
+[2] measured machine-learning detectors (BERT, Word2Vec, stylometric) on rephrased emails and found 3–20% drops. We add:
 - static **rule-based** layers;
 - rewrites forced to keep links and numbers;
 - a **paired** test with confidence intervals;
