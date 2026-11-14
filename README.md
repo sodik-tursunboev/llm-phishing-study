@@ -27,6 +27,7 @@ A paired, offline study by **Sodik Tursunboev** and **Kavish Chaudhari** (Vistul
 | Pilot | `results/m3_pilot.json`, `results/*_pilot.*` |
 | Who did what; AI use | `CONTRIBUTIONS.md`, `AI_LOG.md` |
 | Every reference and the claim it supports | `references/evidence_trail.csv` |
+| Related work compared field by field | `research/related_work.md` |
 | The original brief (the docs' "README section N") | `docs/BRIEF.md` |
 
 ## Reproduce

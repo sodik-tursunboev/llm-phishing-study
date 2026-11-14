@@ -60,7 +60,7 @@ Gates check facts (links, numbers), not meaning. A rewrite could keep every link
 
 ## 7. What we add beyond Ferrell et al. [2]
 
-[2] measured machine-learning detectors (BERT, Word2Vec, stylometric) on rephrased emails and found 3–20% drops. We add:
+[2] measured machine-learning detectors (BERT, Word2Vec, stylometric) on rephrased emails and found 3–20% drops. **We have only read its abstract; read the full text before the defence** and check the open questions in `research/related_work.md`. We add:
 - static **rule-based** layers;
 - rewrites forced to keep links and numbers;
 - a **paired** test with confidence intervals;
@@ -70,7 +70,7 @@ Our result: wording alone did not lower detection here; canonicalization did. En
 
 ## 8. Likely questions, short answers
 
-- **Why do you disagree with Josten & Weis (73.7%)?** We did not test it, but our setup differs: SpamAssassin without its Bayesian learning (central to their paper), a small 4B model instead of GPT-3.5, phishing instead of spam, and rewrites forced to keep links.
+- **Why do you disagree with Josten & Weis (73.7%)?** Read their Table 4: 73.7% is for spam cut to minimal headers; with the original headers it was 9.4%. Their prompt also told GPT-3.5 to "replace spam-like words", an evasion instruction; ours was neutral. Afane et al. [4] likewise asked for emails "designed to bypass email phishing detectors". We did not test these differences, but they test a different attacker (`research/related_work.md`).
 - **Why only one model?** Time and a 4 GB GPU. It is logged as a deviation and listed as a limitation.
 - **Why Gemma, given its licence?** It was the strongest model that fitted. Its policy bans phishing content with no research exception; we used it offline, sent nothing, published no rewrites, and declare it in the paper.
 - **Why 200 per class?** Our pre-set minimum. Generation stopped when 200 per class passed the gates; that rule looked only at the gates, never at any detector.
