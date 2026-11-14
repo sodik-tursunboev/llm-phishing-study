@@ -1,7 +1,7 @@
 """Statistics checks on made-up numbers whose answers are known."""
 import pytest
 
-from src.analysis.stats import cluster_bootstrap_ci, holm, mcnemar_exact
+from src.analysis.stats import Z95, cluster_bootstrap_ci, holm, mcnemar_exact, paired_score_ci, wilson_ci
 
 
 def test_mcnemar_exact():
@@ -56,3 +56,37 @@ def test_only_an_author_name_counts_as_checked():
 
 def test_holm():
     assert holm([0.01, 0.04, 0.03]) == pytest.approx([0.03, 0.06, 0.06])
+
+
+def test_wilson_ci_at_zero_has_its_closed_form_upper_limit():
+    low, high = wilson_ci(0, 200)
+    assert low == pytest.approx(0, abs=1e-12) and high == pytest.approx(Z95**2 / (200 + Z95**2))
+
+
+def test_paired_score_ci_does_not_collapse_without_discordant_pairs():
+    # Nothing flagged under either condition: the bootstrap gives [0, 0]; this interval is
+    # symmetric with the width of a Wilson interval at 0 of 200 (about 1.9 points each side).
+    low, high = paired_score_ci(0, 0, 0, 200)
+    assert high == pytest.approx(Z95**2 / (200 + Z95**2)) and low == pytest.approx(-high)
+
+
+def test_paired_score_ci_contains_the_change_and_flips_with_the_direction():
+    low, high = paired_score_ci(31, 0, 1, 168)  # one gained detection out of 200
+    assert low < 0.005 < high and high - low > 0.02
+    assert paired_score_ci(31, 1, 0, 168) == pytest.approx((-high, -low))
+    low, high = paired_score_ci(59, 0, 9, 132)  # nine gained, none lost: clearly a change
+    assert low > 0
+
+
+def test_decomposition_steps_add_up_and_the_table_is_rebuilt_from_the_row():
+    from src.analysis.exact import decomposition_rows, table
+
+    def row(contrast, rate_a, rate_b, lost, gained):
+        return {"layer": "x", "set": "gate_passed", "class": "phishing", "point": "native", "n": "200",
+                "excluded_errors": "0", "contrast": contrast, "rate_a": str(rate_a), "rate_b": str(rate_b),
+                "lost": str(lost), "gained": str(gained)}
+
+    canon, wording = row("null_a vs orig", 0.55, 0.295, 51, 0), row("llm vs null_a", 0.295, 0.34, 0, 9)
+    assert table(wording) == (59, 0, 9, 132)
+    [out] = decomposition_rows([canon, wording])
+    assert (out["canonicalization_pp"], out["wording_pp"], out["end_to_end_pp"]) == (-25.5, 4.5, -21.0)

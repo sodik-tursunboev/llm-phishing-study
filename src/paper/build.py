@@ -52,6 +52,22 @@ def values():
             v[f"{key}_b_pct"] = f"{100 * float(r['rate_b']):.1f}%"
             v[f"{key}_signed"] = f"{float(r['net_pp']):+.1f}"
             v[f"{key}_ci"] = f"[{float(r['ci_low_pp']):+.1f}, {float(r['ci_high_pp']):+.1f}]"
+            v[f"{key}_shift"] = f"{float(r['score_shift']):+.2f}"  # mean paired score change, threshold-free
+            v[f"{key}_shift_ci"] = f"[{float(r['shift_ci_low']):+.2f}, {float(r['shift_ci_high']):+.2f}]"
+    exact = pathlib.Path("results/exact_test.csv")
+    if exact.exists():  # paired score intervals, a check on the bootstrap (src/analysis/exact.py)
+        for r in _csv(exact):
+            prefix = "" if r["set"] == "gate_passed" else "all_"
+            key = f"{prefix}{r['layer']}_{r['class']}_{r['point']}_{r['contrast'].replace(' ', '_')}"
+            v[f"{key}_exact_ci"] = f"[{float(r['exact_low_pp']):+.1f}, {float(r['exact_high_pp']):+.1f}]"
+    decomposition = pathlib.Path("results/decomposition_test.csv")
+    if decomposition.exists():  # llm vs orig = canonicalization step + wording step
+        for r in _csv(decomposition):
+            prefix = "" if r["set"] == "gate_passed" else "all_"
+            key = f"{prefix}{r['layer']}_{r['class']}_{r['point']}_llm_vs_orig"
+            v[f"{key}_a_pct"] = f"{float(r['orig_pct']):.1f}%"
+            v[f"{key}_b_pct"] = f"{float(r['llm_pct']):.1f}%"
+            v[f"{key}_signed"] = f"{float(r['end_to_end_pp']):+.1f}"
     selection = pathlib.Path("results/selection_test.csv")
     if selection.exists():
         for r in _csv(selection):

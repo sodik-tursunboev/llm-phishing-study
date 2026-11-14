@@ -13,13 +13,14 @@ A paired, offline study by **Sodik Tursunboev** and **Kavish Chaudhari** (Vistul
 | The paper and where its numbers come from | `paper/manuscript.md`; `src/paper/build.py` fills every `{{number}}` from `results/` and `configs/` |
 | The plan was fixed before any rewrite was scored | `PROTOCOL.md`, git tag `protocol-freeze-v1` (`cf4accd`) |
 | Lynceus was frozen before scoring | `LYNCEUS_NOTES.md`, git tag `lynceus-eval-v1` (`450e6d8`), Lynceus commit `ac2a5af` |
-| Every change to the plan, and why | `DEVIATIONS.md` (#1–#23) |
+| Every change to the plan, and why | `DEVIATIONS.md` (#1–#24) |
 | Pinned environment | `Dockerfile` (base image by digest, SpamAssassin by version, WordNet by hash), `requirements.txt`, `ENVIRONMENT.md` |
 | Data sources, licences, file hashes | `DATA_PROVENANCE.md`, `configs/raw_files.csv` |
 | Every message, its hash, cluster and split | `results/m1_messages.csv`, `results/m1_sources.csv`, `results/m1_splits.csv` |
 | Thresholds (fixed on dev) and the frozen classifier | `configs/thresholds.json`, `configs/tfidf_lr.json` |
 | Prompts (hashed) | `prompts/paraphrase.txt`, `prompts/judge.txt` |
 | Main results (Table 1) | `results/primary_test.csv` (rows `set=gate_passed`) |
+| Paired score intervals; end-to-end change split into canonicalization and wording (added after the freeze) | `results/exact_test.csv`, `results/decomposition_test.csv` |
 | Gates, kept vs discarded, canonicalization | `results/gates_test.csv`, `results/selection_test.csv`, `results/canonical_test.json` |
 | What moved (rules and words) | `results/accounting_test.csv` |
 | 30-pair meaning check | `results/judge.json` |
@@ -69,7 +70,7 @@ docker run --rm -v "${PWD}:/work" -v llm-phishing-data:/work/data llm-phishing-s
 7. **Scoring and analysis:**
 
 ```bash
-docker run --rm --network none -v "${PWD}:/work" -v llm-phishing-data:/work/data -v lynceus-src:/opt/lynceus:ro llm-phishing-study sh -c "python -m src.analysis.score spamassassin test && python -m src.analysis.score tfidf_lr test && python -m src.analysis.score lynceus test && python -m src.analysis.primary test && python -m src.analysis.accounting test && python -m src.analysis.canonical test"
+docker run --rm --network none -v "${PWD}:/work" -v llm-phishing-data:/work/data -v lynceus-src:/opt/lynceus:ro llm-phishing-study sh -c "python -m src.analysis.score spamassassin test && python -m src.analysis.score tfidf_lr test && python -m src.analysis.score lynceus test && python -m src.analysis.primary test && python -m src.analysis.accounting test && python -m src.analysis.canonical test && python -m src.analysis.exact test"
 ```
 
 8. **Meaning check.**
