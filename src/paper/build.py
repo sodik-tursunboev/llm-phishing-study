@@ -123,6 +123,11 @@ def values():
     return v
 
 
+def minus(text):
+    """Typographic minus sign for negative numbers ("−25.5", not "-25.5"); hyphens inside words stay."""
+    return re.sub(r"(?<![\w-])-(?=\d)", "\u2212", text)
+
+
 LAYER_NAMES = {"spamassassin": "SpamAssassin", "tfidf_lr": "TF-IDF", "lynceus": "Lynceus"}
 READING = {"no change larger than 2 pp": "within ±2 pp"}  # the paper's reading rule, shortened for the table
 
@@ -170,7 +175,7 @@ def main():
     text = re.sub(r"<!--.*?-->\s*", "", SOURCE.read_text(encoding="utf-8"), flags=re.S)  # drop notes to authors
     v = values()
     missing = sorted(set(re.findall(r"\{\{(\w+)\}\}", text)) - set(v))
-    filled = re.sub(r"\{\{(\w+)\}\}", lambda m: fmt(v[m[1]]) if m[1] in v else f"[MISSING {m[1]}]", text)
+    filled = re.sub(r"\{\{(\w+)\}\}", lambda m: minus(fmt(v[m[1]])) if m[1] in v else f"[MISSING {m[1]}]", text)
     OUTPUT.write_text(filled, encoding="utf-8")
     body = filled.split("## Declarations")[0]  # title to conclusion: what the 3,000-word limit counts
     prose = "\n".join(line for line in body.splitlines() if not line.lstrip().startswith("|"))  # tables aside

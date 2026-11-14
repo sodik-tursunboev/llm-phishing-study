@@ -134,3 +134,13 @@ def test_kappa_refuses_blank_answers_and_records_sheet_hashes(tmp_path, monkeypa
     out = json.loads((tmp_path / "results/ratings.json").read_text())
     assert out["pairs"] == 4 and set(out["sheet_sha256"]) == {"sodik", "kavish"}
     assert out["questions"]["same_label"]["agreement"] == 0.75
+
+
+def test_subject_line_check_and_typographic_minus():
+    from src.analysis.subject_lines import has_subject_line
+    from src.paper.build import minus
+
+    assert has_subject_line("Subject: Your account\nPlease verify.") and has_subject_line("  subject: x")
+    assert not has_subject_line("The subject of this email is your account.")
+    assert minus("-25.5 [-31.6, -19.7]") == "−25.5 [−31.6, −19.7]"
+    assert minus("email-1.2.0, 2026-11-14, +4.5") == "email-1.2.0, 2026-11-14, +4.5"  # hyphens in words stay
