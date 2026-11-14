@@ -171,8 +171,14 @@ def main():
     OUTPUT.write_text(filled, encoding="utf-8")
     body = filled.split("## Declarations")[0]  # title to conclusion: what the 3,000-word limit counts
     prose = "\n".join(line for line in body.splitlines() if not line.lstrip().startswith("|"))  # tables aside
-    print(f"{OUTPUT}: {len(filled.split())} words in all; title to conclusion {len(body.split())}, "
-          f"of which prose (tables excluded) {len(prose.split())}; missing: {', '.join(missing) or 'none'}")
+    print(f"{OUTPUT}: {words(filled)} words in all; title to conclusion {words(body)} (limit 3,000, "
+          f"tables included), of which prose {words(prose)}; missing: {', '.join(missing) or 'none'}")
+
+
+def words(text):
+    """Words as a reader counts them: tokens with a letter or digit, so table pipes, list dashes and
+    heading marks are not counted."""
+    return sum(bool(re.search(r"[^\W_]", token)) for token in text.split())
 
 
 if __name__ == "__main__":

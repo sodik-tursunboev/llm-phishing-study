@@ -93,7 +93,7 @@ docker run --rm --network none -v "${PWD}:/work" -v llm-phishing-data:/work/data
 docker run --rm --network none -v "${PWD}:/work" llm-phishing-study python -m src.paper.build
 ```
 
-10. **Check command:** 48 tests, offline.
+10. **Check command:** 45 tests, offline.
 
 ```bash
 docker run --rm --network none -v "${PWD}:/work" -v llm-phishing-data:/work/data -v lynceus-src:/opt/lynceus:ro llm-phishing-study python -m pytest -q -p no:cacheprovider
