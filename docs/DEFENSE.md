@@ -31,7 +31,7 @@ So orig → null-A is causal for this **bundle**. We cannot say whether the HTML
 
 ## 4. Why the meaning check matters, and what it showed
 
-Gates check facts (links, numbers), not meaning. A rewrite could keep every link and still change what the email asks for. So a second local model (llama3.2:3b) judged 30 pairs on four questions, and Kavish read all 30 and accepted the answers (`judge.json`):
+Gates check facts (links, numbers), not meaning. A rewrite could keep every link and still change what the email asks for. So a second local model (llama3.2:3b) judged 30 pairs on four questions, and Kavish read all 30 and accepted every answer (`judge.json`). Kavish worked from Sodik's account; the assistant only typed Kavish's name into the sheet:
 - action kept 70%;
 - target kept 83%;
 - urgency kept 73%;
@@ -78,7 +78,8 @@ Our result: wording alone did not lower detection here; canonicalization did.
 - **What does McNemar test?** Whether, among emails that changed outcome, losses and gains are unbalanced. Ours were balanced (Holm p = 1.0).
 - **Why a cluster bootstrap?** Emails from the same campaign template are not independent, so we resample whole templates when computing the interval.
 - **Why only 46% / 36% passing the gates?** The small model often dropped a link or a number. Analysed emails are therefore shorter; we report kept vs discarded and repeat every result on all rewrites (same conclusion).
-- **Did AI write this?** We used Claude Code as a programming and writing assistant, and declared it. We designed the study, took every decision, ran it on our machine, checked the meaning judgments, and verified the sources and numbers.
+- **Did AI write this?** Claude Code wrote the code to our specification and drafted the text, and the paper declares it. We designed the study, took every decision and ran it on our machine. We read and checked everything by hand: Kavish checked the meaning judgments, every reference and every number. The assistant typed our check results into files; it never rated, judged or verified anything.
+- **Why is every commit under Sodik's name?** Kavish worked from Sodik's account. `CONTRIBUTIONS.md` records who did each task; commit authorship does not.
 - **What next?** Several models, an adaptive attacker, HTML-preserving rewrites, and a larger human meaning check.
 
 ## 9. Weaknesses to admit before they are pointed out

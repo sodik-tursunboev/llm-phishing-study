@@ -77,7 +77,7 @@ A rewrite entered the analysis only if, compared with its null-A text, it:
 - was still in English;
 - added no refusal or comment of its own.
 
-We fixed these gates on a 53-message pilot ({{pilot_passed}} passed) and compare the emails that failed them with those that passed. Gates check facts, not meaning. For meaning, llama3.2:3b [13], a local model from a different family than the generator, judged 30 pairs (15 per class): does the rewrite keep the requested action, the target and entities, the urgency, and the category (phishing or legitimate)? A human then read every pair and corrected any answer they disagreed with.
+We fixed these gates on a 53-message pilot ({{pilot_passed}} passed) and compare the emails that failed them with those that passed. Gates check facts, not meaning. For meaning, llama3.2:3b [13], a local model from a different family than the generator, judged 30 pairs (15 per class): does the rewrite keep the requested action, the target and entities, the urgency, and the category (phishing or legitimate)? The second author then read every pair, with the model's answers in view, and could correct any of them.
 
 ### 3.4 Detectors
 
@@ -189,7 +189,7 @@ We asked whether one paraphrase by a small local LLM lowers detection by static 
 
 ## Declarations
 
-**Declaration of Generative AI and AI-Assisted Technologies.** We used Claude Code (Anthropic) as a programming and writing assistant. It helped us write and test the data pipeline and analysis scripts, find and open sources, and draft and edit this text. Lynceus, the first author's detector, was also built with its help before this study. Two local models were part of the experiment itself: gemma3:4b produced the rewrites under study, and llama3.2:3b pre-filled the meaning-check sheet. We designed the study, took every methodological decision, ran the experiments on our own computer, checked the meaning judgments, verified every source and checked every reported number against the result files. Every use of AI is logged in `AI_LOG.md` in our repository.
+**Declaration of Generative AI and AI-Assisted Technologies.** We used Claude Code (Anthropic) as a programming and writing assistant. It wrote the code for the data pipeline, detector adapters and analysis to our specification, drafted and edited this text, found sources and opened their pages, and typed our check results into the record files. Lynceus, the first author's detector, was also built with its help before this study. Two local models were part of the experiment itself: gemma3:4b produced the rewrites under study, and llama3.2:3b pre-filled the meaning-check sheet. We designed the study, took every methodological decision and ran the experiments on our own computer. We read and checked everything by hand: the meaning judgments, every source and every reported number against the result files. The assistant did not rate, judge or verify anything. Every use of AI is logged in `AI_LOG.md` in our repository.
 
 **Ethics and model licence.** We rewrote only existing phishing emails from a public corpus, offline, after removing personal data. Nothing was sent, no email text left our computer, and the rewrites are not published. The generator's use policy [19] bars generating content for phishing and makes no research exception. We used it only for this defensive evaluation, and we declare that choice here.
 
