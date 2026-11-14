@@ -28,6 +28,7 @@ def values():
             v[f"{label}_{column}"] = sum(int(r[column]) for r in rows)
     for r in _csv("results/m1_splits.csv"):
         v[f"{r['label']}_{r['split']}"] = int(r["messages"])
+        v[f"{r['label']}_{r['split']}_pct_html"] = f"{float(r['pct_html']):.0f}%"
     l2 = json.loads(pathlib.Path("configs/tfidf_lr.json").read_text())
     v["l2_C"], v["l2_dev_auc"] = l2["C"], l2["dev_auc_by_C"][str(l2["C"])]
     thresholds = pathlib.Path("configs/thresholds.json")
@@ -76,6 +77,8 @@ def values():
     accounting = pathlib.Path("results/accounting_test.csv")
     if accounting.exists():
         for r in _csv(accounting):
+            if r["layer"] == "spamassassin":  # mean change in rule points per message, e.g. acct_spamassassin_XPRIO
+                v[f"acct_spamassassin_{r['item']}"] = f"{float(r['mean_change']):+.2f}"
             if r["item"] == "email.social_engineering starts":
                 v["lynceus_social_starts"] = f"{100 * float(r['mean_change']):.0f}%"
     if primary.exists():

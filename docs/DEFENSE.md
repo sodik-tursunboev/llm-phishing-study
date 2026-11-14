@@ -10,7 +10,7 @@ Numbers below come from `results/` (file in brackets). If a number in the paper 
 - a dictionary synonym swap;
 - one rewrite by a small local model that had to keep every link, number and name.
 
-Three static detectors scored all four versions: SpamAssassin, a TF-IDF classifier, and Lynceus, Sodik's own rule-based tool. The rewrite did **not** lower detection for any of them. The big drop came from turning HTML emails into plain text, not from the new wording."
+Three static detectors scored all four versions: SpamAssassin, a TF-IDF classifier, and Lynceus, Sodik's own rule-based tool. The rewrite did **not** lower detection: for SpamAssassin and TF-IDF a drop larger than 2 points is ruled out, and Lynceus was at its floor at the strict threshold. The big drop came from turning HTML emails into plain text, not from the new wording."
 
 ## 2. Why our controls isolate the wording
 
@@ -38,7 +38,7 @@ Gates check facts (links, numbers), not meaning. A rewrite could keep every link
 - **category kept only 30%**;
 - all four 23%.
 
-**Your honest answer:** "The meaning check is our weakest point. Taken at face value, many rewrites no longer read like their category. But the TF-IDF classifier, trained only on human emails, still flags 100% of rewritten phishing and only 2.5% of rewritten legitimate mail, so the two signals disagree. With a 3B judge and 30 pairs we can't settle it, so we report both and call it a limitation."
+**Your honest answer:** "The meaning check is our weakest point. Taken at face value, many rewrites no longer read like their category. TF-IDF still flags 100% of rewritten phishing and only 2.5% of rewritten legitimate mail, but that is weak evidence: it separates our two corpora almost perfectly (AUC 0.9995), probably partly by era and source. With a 3B judge and 30 pairs we can't settle it, so we report both and call it a limitation."
 
 ## 5. Difference versus cause (the coordinator's second question)
 
@@ -47,7 +47,7 @@ Gates check facts (links, numbers), not meaning. A rewrite could keep every link
   - SpamAssassin's score is a sum of rule points, so we see which rules changed;
   - TF-IDF's score is a sum of word contributions, so we see which words changed;
   - Lynceus lists the rules that fired.
-- **Cause:** claimed only when a fixed rule, with no AI, changed the message: the canonicalization. Everything else is "consistent with". Example: Lynceus caught *more* rewritten phishing (+4.5 points) because its social-engineering phrase rule started firing on 15% of rewrites. That is consistent with the model adding urgent wording, but we did not test it.
+- **Cause:** claimed only when a fixed rule, with no AI, changed the message: the canonicalization. Everything else is "consistent with". Example: on gate-passed rewrites, Lynceus caught *more* phishing (+4.5 points), and its social-engineering phrase rule started firing on 15% of them. That is consistent with the model adding urgent wording, but we did not test it. It also does not survive the sensitivity check: on all 435 rewrites the change is −0.7 (inconclusive), because rewrites that dropped a link lost Lynceus detections. Say this before you are asked.
 
 ## 6. Lynceus: what you built and how it fits
 
@@ -66,7 +66,7 @@ Gates check facts (links, numbers), not meaning. A rewrite could keep every link
 - a **paired** test with confidence intervals;
 - the separation of **wording** from **canonicalization**.
 
-Our result: wording alone did not lower detection here; canonicalization did.
+Our result: wording alone did not lower detection here; canonicalization did. End to end (`decomposition_test.csv`), sending the rewrite as plain text instead of the original cost Lynceus 21.0 points at its default threshold: −25.5 from canonicalization, +4.5 from the wording. An evasion study that compares a plain-text rewrite with the HTML original would credit that loss to the LLM.
 
 ## 8. Likely questions, short answers
 
@@ -77,14 +77,22 @@ Our result: wording alone did not lower detection here; canonicalization did.
 - **Why a 1% false-alarm threshold?** It gives every layer a comparable, realistic operating point, fixed on dev data. We also report each tool's default.
 - **What does McNemar test?** Whether, among emails that changed outcome, losses and gains are unbalanced. Ours were balanced (Holm p = 1.0).
 - **Why a cluster bootstrap?** Emails from the same campaign template are not independent, so we resample whole templates when computing the interval.
-- **Why only 46% / 36% passing the gates?** The small model often dropped a link or a number. Analysed emails are therefore shorter; we report kept vs discarded and repeat every result on all rewrites (same conclusion).
+- **Why only 46% / 36% passing the gates?** The small model often dropped a link or a number. Analysed emails are therefore shorter; we report kept vs discarded and repeat every result on all rewrites. The calibrated-threshold readings for SpamAssassin and TF-IDF stay the same; the Lynceus default-threshold gain does not.
 - **Did AI write this?** Claude Code wrote the code to our specification and drafted the text, and the paper declares it. We designed the study, took every decision and ran it on our machine. We read and checked everything by hand: Kavish checked the meaning judgments, every reference and every number. The assistant typed our check results into files; it never rated, judged or verified anything.
 - **Why is every commit under Sodik's name?** Kavish worked from Sodik's account. `CONTRIBUTIONS.md` records who did each task; commit authorship does not.
+- **Your interval is [0, 0]. Are you certain of zero change?** No. With zero or one changed outcome, a bootstrap interval collapses. We added Newcombe's paired interval as a check (`exact_test.csv`, DEVIATIONS #24): it is [−1.3, +2.4] for SpamAssassin and [−1.4, +2.8] for TF-IDF, so a drop larger than 2 points is still ruled out, but not a gain of that size.
+- **TF-IDF has an AUC of 0.9995. What is it detecting?** Partly the difference between our corpora: legitimate mail from 2002–2003 mailing lists, phishing from 2005–2022. That is why it sits at its ceiling. Its score shift is the useful number: +0.03 logits for phishing rewrites, so the wording barely moved it; and +0.67 for legitimate rewrites, towards phishing.
+- **Why did XPRIO, a header rule, move when the headers never change?** It is a meta rule: it fires only if, among other conditions, the body has no non-ASCII character (`__L_BODY_8BITS` in SpamAssassin's `72_active.cf`). Typographic quotes or dashes added by the model would switch it off. We did not check that.
+- **Why did the TF-IDF word "subject" move when the subject never changes?** Each email's vector is scaled to unit length, so any change in other words changes every word's weight.
+- **Isn't "canonicalization hurts" just "deleting information hurts"?** Partly, yes, and we say it is a bundle. The point is where the deletion happens: a layer placed after text extraction loses its signal, and an evasion study that compares a plain-text rewrite with an HTML original credits that loss to the LLM.
 - **What next?** Several models, an adaptive attacker, HTML-preserving rewrites, and a larger human meaning check.
 
 ## 9. Weaknesses to admit before they are pointed out
 
-- The meaning check (category 30%).
+- The meaning check (category 30%), one small judge, and a checker who saw its answers first.
+- The Lynceus default-threshold gain holds only for gate-passed rewrites.
+- Our phishing is 95% HTML and our legitimate mail 4% HTML, unlike modern mail.
+- The synonym swap (first WordNet synonym) is a crude baseline.
 - One small model, and a non-adaptive attacker.
 - The analysed emails are shorter than the rest.
 - Old corpora: style mixed with era.

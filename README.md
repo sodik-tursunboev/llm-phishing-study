@@ -4,7 +4,7 @@ A paired, offline study by **Sodik Tursunboev** and **Kavish Chaudhari** (Vistul
 
 **Question.** When existing phishing emails are rewritten once by a local open-weight model, with no feedback from any filter, does detection by static email layers drop, and which layer accounts for it?
 
-**Answer, under our protocol.** We compared each LLM rewrite with a canonical plain-text version of the same email (null-A). For SpamAssassin, a TF-IDF classifier and Lynceus, the rewrite did not lower phishing detection, and Lynceus even caught more. The large effect came from canonicalizing the emails to plain text, which strips the HTML and drops links outside anchors. Every number is in `results/`, and the paper is filled from those files.
+**Answer, under our protocol.** We compared each LLM rewrite with a canonical plain-text version of the same email (null-A). At the calibrated thresholds, the rewrite did not lower phishing detection: for SpamAssassin and a TF-IDF classifier a drop larger than 2 points is ruled out, and Lynceus sat at its floor. The large effect came from canonicalizing the emails to plain text, which strips the HTML and drops links outside anchors: sending the rewrite as plain text instead of the original cost Lynceus 21 points at its default threshold, all of it from canonicalization. Every number is in `results/`, and the paper is filled from those files.
 
 ## Audit map: where to check each claim
 
