@@ -28,8 +28,10 @@ def values():
             v[f"{label}_{column}"] = sum(int(r[column]) for r in rows)
     for r in _csv("results/m1_splits.csv"):
         v[f"{r['label']}_{r['split']}"] = int(r["messages"])
+        v[f"{r['label']}_{r['split']}_pct_html"] = f"{float(r['pct_html']):.0f}%"
     l2 = json.loads(pathlib.Path("configs/tfidf_lr.json").read_text())
-    v["l2_C"], v["l2_dev_auc"] = l2["C"], l2["dev_auc_by_C"][str(l2["C"])]
+    v["l2_C"] = int(l2["C"]) if float(l2["C"]).is_integer() else l2["C"]  # "C = 100", not "100.0"
+    v["l2_dev_auc"] = l2["dev_auc_by_C"][str(l2["C"])]
     thresholds = pathlib.Path("configs/thresholds.json")
     if thresholds.exists():
         for layer, t in json.loads(thresholds.read_text())["layers"].items():
@@ -52,6 +54,22 @@ def values():
             v[f"{key}_b_pct"] = f"{100 * float(r['rate_b']):.1f}%"
             v[f"{key}_signed"] = f"{float(r['net_pp']):+.1f}"
             v[f"{key}_ci"] = f"[{float(r['ci_low_pp']):+.1f}, {float(r['ci_high_pp']):+.1f}]"
+            v[f"{key}_shift"] = f"{float(r['score_shift']):+.2f}"  # mean paired score change, threshold-free
+            v[f"{key}_shift_ci"] = f"[{float(r['shift_ci_low']):+.2f}, {float(r['shift_ci_high']):+.2f}]"
+    exact = pathlib.Path("results/exact_test.csv")
+    if exact.exists():  # paired score intervals, a check on the bootstrap (src/analysis/exact.py)
+        for r in _csv(exact):
+            prefix = "" if r["set"] == "gate_passed" else "all_"
+            key = f"{prefix}{r['layer']}_{r['class']}_{r['point']}_{r['contrast'].replace(' ', '_')}"
+            v[f"{key}_exact_ci"] = f"[{float(r['exact_low_pp']):+.1f}, {float(r['exact_high_pp']):+.1f}]"
+    decomposition = pathlib.Path("results/decomposition_test.csv")
+    if decomposition.exists():  # llm vs orig = canonicalization step + wording step
+        for r in _csv(decomposition):
+            prefix = "" if r["set"] == "gate_passed" else "all_"
+            key = f"{prefix}{r['layer']}_{r['class']}_{r['point']}_llm_vs_orig"
+            v[f"{key}_a_pct"] = f"{float(r['orig_pct']):.1f}%"
+            v[f"{key}_b_pct"] = f"{float(r['llm_pct']):.1f}%"
+            v[f"{key}_signed"] = f"{float(r['end_to_end_pp']):+.1f}"
     selection = pathlib.Path("results/selection_test.csv")
     if selection.exists():
         for r in _csv(selection):
@@ -60,6 +78,8 @@ def values():
     accounting = pathlib.Path("results/accounting_test.csv")
     if accounting.exists():
         for r in _csv(accounting):
+            if r["layer"] == "spamassassin":  # mean change in rule points per message, e.g. acct_spamassassin_XPRIO
+                v[f"acct_spamassassin_{r['item']}"] = f"{float(r['mean_change']):+.2f}"
             if r["item"] == "email.social_engineering starts":
                 v["lynceus_social_starts"] = f"{100 * float(r['mean_change']):.0f}%"
     if primary.exists():
@@ -96,8 +116,10 @@ def values():
     if ratings.exists():
         out = json.loads(ratings.read_text())
         v["ratings_equivalent_both"] = f"{100 * out['equivalent_both']:.0f}%"
-        for q, s in out["questions"].items():
+        for q, s in out["questions"].items():  # the blind two-author rating (docs/RATING.md)
             v[f"kappa_{q}"], v[f"agreement_{q}"] = s["cohen_kappa"], f"{100 * s['agreement']:.0f}%"
+            if s.get("kappa_ci"):
+                v[f"kappa_ci_{q}"] = f"[{s['kappa_ci'][0]:.2f}, {s['kappa_ci'][1]:.2f}]"
     return v
 
 
@@ -152,8 +174,14 @@ def main():
     OUTPUT.write_text(filled, encoding="utf-8")
     body = filled.split("## Declarations")[0]  # title to conclusion: what the 3,000-word limit counts
     prose = "\n".join(line for line in body.splitlines() if not line.lstrip().startswith("|"))  # tables aside
-    print(f"{OUTPUT}: {len(filled.split())} words in all; title to conclusion {len(body.split())}, "
-          f"of which prose (tables excluded) {len(prose.split())}; missing: {', '.join(missing) or 'none'}")
+    print(f"{OUTPUT}: {words(filled)} words in all; title to conclusion {words(body)} (limit 3,000, "
+          f"tables included), of which prose {words(prose)}; missing: {', '.join(missing) or 'none'}")
+
+
+def words(text):
+    """Words as a reader counts them: tokens with a letter or digit, so table pipes, list dashes and
+    heading marks are not counted."""
+    return sum(bool(re.search(r"[^\W_]", token)) for token in text.split())
 
 
 if __name__ == "__main__":

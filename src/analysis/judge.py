@@ -1,4 +1,4 @@
-"""Comparability judgment of the 30 rating pairs by a LOCAL model, checked by the first author.
+"""Comparability judgment of the 30 rating pairs by a LOCAL model, checked by an author.
 
 This replaces the two-author blind rating (authors' decision, DEVIATIONS.md #20). The judge is
 llama3.2:3b, a different model family from the generator, so the rewriter does not grade its own

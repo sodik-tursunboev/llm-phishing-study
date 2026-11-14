@@ -12,16 +12,21 @@ Everything below comes from the Lynceus repository at the pinned commit (code, `
 | Licence | **UNKNOWN**: the repository has no LICENSE, COPYING or NOTICE file |
 | History | 83 commits, 2026-11-04 to 2026-11-10, all authored by `sodik-t`; each with an AI co-author trailer. |
 
-## 2. What it does (its own README)
+## 2. What Lynceus is
 
-A local-first phishing detector for Windows with these parts:
-- a URL engine (readable rules);
-- message and file engines that parse in a sandboxed worker;
-- optional threat-intelligence lists and providers;
-- a Windows agent, a browser extension and a console;
-- read-only Gmail and Outlook connectors.
+Sources: Lynceus's own `FEATURES.md`, `DETECTION_ENGINE.md` and `KNOWN_LIMITATIONS.md` (version of 2026-11-11, provided by the author on 2026-11-14), and its README. Lynceus is still being improved; this study evaluates commit `ac2a5af` only.
 
-Verdicts are `MALICIOUS | SUSPICIOUS | BENIGN | UNKNOWN | ERROR`, each with a risk score, the rules that fired and evidence. Its README reports that its URL rules catch 2.5% of real phishing URLs on its own E1 evaluation (`docs/eval/url-real.md` in that repository, not checked here).
+Lynceus is a local-first phishing-defence system for Windows. It is more than a static detector:
+- **URL engine:** 20 readable rules (lookalike and typosquat domains, encoded targets, credential bait and more) over a browser-grade URL parser.
+- **Message and file engines:** MIME, header, HTML and link analysis, sender and authentication checks, and attachment inspection (scripts, shortcuts, programs, PDFs, archives, images with QR codes, Office documents), each parsed in a sandboxed worker.
+- **Macro analysis:** a bounded evaluator runs a macro's own string-building code, and call-graph analysis follows auto-run code to dangerous calls.
+- **Page detonation (D1):** on request, opens a page in a throwaway, locked-down browser container and judges what it shows, with 10 page rules.
+- **Threat intelligence:** OpenPhish and PhishTank lists matched locally; optional VirusTotal, urlscan, URLhaus, MalwareBazaar and domain age.
+- **Local AI reviewer:** `llama3.2:3b` through Ollama gives advice on macros. It is off by default, and can add at most one weak signal, never decide.
+- **Scoring:** a published risk model (noisy-OR per category, capped, then across categories, 0 to 100). MALICIOUS needs a high score and strong evidence of two independent kinds.
+- **Around the engine:** a Windows agent, a browser extension with warning pages, a console, reversible quarantine, and read-only Gmail and Outlook connectors (tested against fakes only).
+
+Verdicts are `MALICIOUS | SUSPICIOUS | BENIGN | UNKNOWN | ERROR`, each with a risk score, the rules that fired and evidence. Lynceus's own measurements (not re-run here): its URL rules alone catch 2.5% of real phishing URLs (E1), and URL rules plus the opened page catch 37.3% of live phishing pages (D1 test half). Learned scoring is planned, not built.
 
 ## 3. What we use, and what we do not
 
@@ -38,9 +43,10 @@ Only `core/` and `rules/` are copied, by `git archive`, into the Docker volume `
 - threat intelligence: needs the network, and stays off because no `LYNCEUS_INTEL_PROVIDERS` is set;
 - known-bad hash lists: none are configured, so `intel.hash_known_bad` cannot fire;
 - the local-model reviewer: `analyze_message` does not call it;
-- attachment parsers (pikepdf, Pillow, OpenCV): not installed, because every study message is text-only, so attachment inspection is never triggered.
+- attachment parsers (pikepdf, Pillow, OpenCV) and macro analysis: not installed, because every study message is text-only, so attachment inspection is never triggered;
+- page detonation (D1): it needs Docker and the network, opens live pages, and is never called on the message path.
 
-**Static and offline?** Yes, on this path. Fixed rules and weights, no training, no network (the container has none), deterministic. `tests/test_lynceus.py` checks one message gives an identical result twice, and the test-split run below checks the same at scale.
+**Static and offline?** Lynceus as a whole is not purely static (page detonation, intelligence feeds, the local reviewer). The path this study uses is. Fixed rules and weights, no training, no network (the container has none), deterministic. `tests/test_lynceus.py` checks one message gives an identical result twice, and the test-split run below checks the same at scale.
 
 ## 4. The one adaptation
 
@@ -56,7 +62,7 @@ Consequence: the Windows sandbox itself is not part of what we evaluate. It is a
 - `flagged` is True for MALICIOUS or SUSPICIOUS, the states where Lynceus warns the user. UNKNOWN ("not enough to call it") is not flagged. *Authors: confirm this mapping.*
 - An ERROR, or a verdict without a score (the engine gives a reason, such as a parser timeout), becomes `error` with `flagged=None`. It is never counted as benign or flagged.
 - `evidence` lists the rule ids that fired. `config_hash` is the SHA-256 of Lynceus's `rules/` folder.
-- A second, dev-calibrated threshold on `score` (1% false positives on dev originals) will be fixed before the freeze, as for the other layers (README section 5.4).
+- A second, dev-calibrated threshold on `score` (at most 1% false positives on dev originals) was fixed before the freeze, as for the other layers: flag when score > 87 (section 7).
 
 ## 6. How a rewrite can reach Lynceus (from its rule code)
 
@@ -91,9 +97,9 @@ The new detonation code is not on the path this study uses.
 - Its rules were written by the same authors who run this study (conflict of interest, README section 7.5): results are reported whatever they are, with the same controls as every layer.
 - The frozen version must never be tuned on rewritten data. A bug found after the freeze goes to `DEVIATIONS.md` and triggers a full re-run.
 
-## 9. Authorship split (answered by the authors on 2026-11-12)
+## 9. Authorship
 
-**Authors' statement:** Lynceus was authored by Sodik Tursunboev before this study. Kavish Chaudhari is Sodik's partner in this study and did not write Lynceus.
+**Authors' statement:** Lynceus is Sodik Tursunboev's tool. Sodik, a SOC and cybersecurity analyst, designed its full architecture and built it with an AI assistant before this study. Kavish Chaudhari is Sodik's partner in this study and did not write Lynceus.
 
 Dates from the two git histories:
 - Lynceus's first commit is 2026-11-04.
@@ -101,18 +107,14 @@ Dates from the two git histories:
 - This study's first commit is 2026-11-11 00:23.
 - The evaluated version, `ac2a5af` (2026-11-12 14:00), adds Sodik's later improvements, made without study data. They change no verdict on this study's data (DEVIATIONS.md #17).
 
-The table below records how Lynceus was built, AI assistance included, so the paper can answer the coordinator's question exactly.
+The coordinator asked what we built ourselves. Git history alone does not establish contributions (README section 7.1); it shows one human author, Sodik, with an AI co-author on every commit. The table records who did what. It was compiled on 2026-11-12 from the Lynceus git history at `ac2a5af` and its provenance files, and updated on 2026-11-14 with the author's statement on the architecture.
 
-The coordinator asked what we built ourselves. Git history alone does not establish contributions (README section 7.1). It shows one human author, with an AI co-author on every commit.
-
-Compiled on 2026-11-12 from the Lynceus git history at `ac2a5af` and its provenance files, and confirmed by the authors (statement above). "None known" means the history shows none.
-
-| Part | Written by us | AI-assisted (how) | Third-party |
+| Part | Sodik | AI assistant | Third-party |
 |---|---|---|---|
-| Direction, scope and decisions | Sodik: set the goals and the milestone order, chose what to build, approved each plan, every architecture decision record (24 at `d9c3ba8`, 25 at `ac2a5af`) and every new dependency, chose the evaluation datasets, and ran the installs and live checks on Sodik's own machine | The AI assistant proposed designs and drafted plans and decision records for Sodik's approval | None |
-| Rule design (which signs of phishing, weights) | None known: no rule or weight is recorded as written by the authors; the authors approved them milestone by milestone | The AI assistant proposed the signs of phishing and set every weight, cap and threshold by hand, from general knowledge of phishing techniques, then checked them on its own synthetic corpus and, for URLs, on real data (E1). Weights were never fitted: a fit on E1 data was tried and not adopted. The message rules used here are unchanged since 2026-11-10 | MITRE ATT&CK technique ids, as labels only |
-| Rule and engine code | None known | Written with the AI assistant from Sodik's instructions: all 84 commits (2026-11-04 to 2026-11-12) are authored as `sodik-t` and every one carries an AI co-author trailer | The libraries in the next rows |
-| Rule data (brand lists, phrase lists) | None known | Drafted with the AI assistant from general knowledge and not verified against any source, as their own file headers say: `rules/url/brands.toml` and `rules/url/lists.toml` (2026-11-04), `rules/email/lists.toml` (urgency and credential phrases, English and Polish, 2026-11-05) | `rules/url/data/confusables.txt`: Unicode UTS #39 confusables 18.0.0, unmodified, Unicode License (`rules/url/data/PROVENANCE.md`). `core/urls/data/public_suffix_list.dat`: Public Suffix List snapshot of 2026-11-04, MPL 2.0 (`core/urls/data/PROVENANCE.md`) |
+| Architecture, direction and decisions | Designed the full architecture (the parts in section 2); set the goals and the milestone order; chose what to build; approved each plan, every architecture decision record (24 at `d9c3ba8`, 25 at `ac2a5af`) and every new dependency; chose the evaluation datasets; ran the installs and live checks on Sodik's own machine | Drafted plans and decision records from Sodik's design, for Sodik's approval | None |
+| Rule design (which signs of phishing, weights) | Chose what Lynceus detects; approved the rules and weights milestone by milestone | Drafted the signs of phishing and set each weight, cap and threshold by hand, from general knowledge of phishing techniques, then checked them on its own synthetic corpus and, for URLs, on real data (E1). Weights were never fitted: a fit on E1 data was tried and not adopted. The message rules used here are unchanged since 2026-11-10 | MITRE ATT&CK technique ids, as labels only |
+| Rule and engine code | Built it with the assistant: directed every step, and ran and checked the result | Wrote the code from Sodik's instructions: all 84 commits (2026-11-04 to 2026-11-12) are authored as `sodik-t` and every one carries an AI co-author trailer | The libraries in the next rows |
+| Rule data (brand lists, phrase lists) | Approved with each milestone | Drafted from general knowledge and not verified against any source, as their own file headers say: `rules/url/brands.toml` and `rules/url/lists.toml` (2026-11-04), `rules/email/lists.toml` (urgency and credential phrases, English and Polish, 2026-11-05) | `rules/url/data/confusables.txt`: Unicode UTS #39 confusables 18.0.0, unmodified, Unicode License (`rules/url/data/PROVENANCE.md`). `core/urls/data/public_suffix_list.dat`: Public Suffix List snapshot of 2026-11-04, MPL 2.0 (`core/urls/data/PROVENANCE.md`) |
 | Parser libraries | | | On this study's path (text-only messages): ada-url (URL parsing) and pydantic (data models) in the engine, and the Python standard library (`email`, `html.parser`) in the parser worker, which imports nothing else. lxml, pikepdf, Pillow and OpenCV are used only for attachments and are not installed here |
 | Kavish's part in Lynceus | None: Kavish did not write Lynceus (authors' statement, 2026-11-12); no commits under another name | | |
 
