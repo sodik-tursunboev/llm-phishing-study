@@ -51,7 +51,7 @@ Gates check facts (links, numbers), not meaning. A rewrite could keep every link
 
 ## 6. Lynceus: what you built and how it fits
 
-- **What it is:** Sodik's local, rule-based phishing detector (URL rules, sender rules, HTML and link rules, one phrase rule), built before this study. Sodik designed and directed it; the code was written with AI assistance, and the paper says so.
+- **What it is:** Sodik's local, rule-based phishing detector (URL rules, sender rules, HTML and link rules, one phrase rule), built before this study. Sodik designed and directed it and approved every rule; the AI assistant wrote the code and proposed the rules and weights. The paper says exactly that (`LYNCEUS_NOTES.md` section 9).
 - **How it fits:** one of three layers, used through its own message engine. Only the Windows sandbox launcher was swapped, so it runs offline in Docker. It was frozen (tag `lynceus-eval-v1`) before any rewrite was scored.
 - **Conflict of interest:** we evaluated our own tool under the same controls and reported its results as they came:
   - at the 1% false-alarm threshold it sits near the floor (catching 1–2%);
