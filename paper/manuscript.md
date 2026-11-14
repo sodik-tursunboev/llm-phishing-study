@@ -26,11 +26,11 @@ Studies report that phishing emails rewritten by large language models (LLMs) ev
 
 In 2025, phishing and spoofing was the crime type most often reported to the FBI's Internet Crime Complaint Center: 191,561 of 1,008,597 complaints [1, pp. 6–7]. The report also warns that chat generators can quickly create official-sounding emails containing phishing links [1, p. 39]. Studies report that rewriting by LLMs lowers detection by SpamAssassin, commercial filters and machine-learning detectors [2]–[4]. Yet rewriting can also change the message's representation, lose a link or alter the request, and it remains unclear how much of the reported loss comes from the wording itself.
 
-We study the simplest version of the threat: an attacker asks a local, open-weight model to rewrite each existing phishing email once, with a neutral instruction and no feedback from any filter. Our research question is: **how much does detection by static email-security layers drop, and which layer accounts for the loss?** Our objectives are to:
+We study the simplest version of the threat: an attacker asks a local, open-weight model to rewrite each existing phishing email once, with a neutral instruction and no feedback from any filter. Our research question is: **how much does detection by static email-security layers change, and which layer accounts for it?** Following [2]–[4], we expected a drop (H1). Our objectives are to:
 
 1. measure the paired change in detection for three static layers;
 2. separate the LLM's wording from rewording in general and from conversion to plain text;
-3. check that each rewrite keeps the links, numbers and meaning of its original.
+3. check that each rewrite keeps its links and numbers, and, on a sample, its meaning.
 
 Ferrell et al. [2] measured machine-learning detectors; we test static layers, including rule-based ones, with a neutral prompt, require every rewrite to keep its links and numbers, and separate the wording from the conversion to plain text.
 
@@ -57,11 +57,11 @@ We then removed personal data (address local parts, phone numbers, recipients' n
 
 ### 3.2 Four versions of every email
 
-Each test email was scored in four versions, so it is compared only with itself. All four keep the same headers and pass through the same rendering code; only the body differs. A four-billion-parameter model cannot rewrite HTML reliably, so rewriting starts from the plain-text version, null-A.
+Each rewritten test email was scored in four versions, so it is compared only with itself. All four keep the same headers and pass through the same rendering code; only the body differs. A four-billion-parameter model cannot rewrite HTML reliably, so rewriting starts from the plain-text version, null-A.
 
 - **orig** is the email after personal data was removed, with its own plain and HTML parts.
 - **null-A** is a canonicalization of orig by a fixed rule. The body becomes one plain-text part: the email's plain part if it has one, or else the visible text of its HTML, with each link's address written after its anchor text as `<URL>`. Tags, scripts and links outside anchors, such as in images, disappear. Comparing llm with null-A isolates the wording; comparing null-A with orig measures the canonicalization as a whole.
-- **lex** is null-A after a WordNet [9] synonym swap through NLTK [10], until {{lex_dose}} of words had changed (the model's median on the pilot), never touching links, addresses or placeholders. It tests whether *any* rewording of that size lowers detection.
+- **lex** is null-A after a WordNet [9] synonym swap through NLTK [10], aiming to change {{lex_dose}} of words (the model's median on the pilot), never touching links, addresses or placeholders. It tests whether *any* rewording of that size lowers detection.
 - **llm** is one paraphrase of null-A by gemma3:4b [11], run locally through Ollama [12] at temperature 0 with a fixed seed, using the prompt *"Rewrite the following email in your own words. Keep every link, name, number and the requested action unchanged. Output only the rewritten email text."* The prompt never mentions filters, and the model received no feedback.
 
 We rewrote test emails in a fixed random order until 200 per class had passed the gates below; this stopping rule never looked at any detector.
@@ -77,7 +77,7 @@ Gates check facts, not meaning. For meaning, llama3.2:3b [13], a local model fro
 All three layers are static: fixed rules, or a frozen model.
 
 - **SpamAssassin** {{spamassassin_version_number}} [14], with its shipped rules, local tests only, and Bayesian learning off.
-- **A TF-IDF classifier with logistic regression** [15], trained on the training split ({{phishing_train}} phishing, {{ham_train}} legitimate), with its one setting chosen on the development split (C = {{l2_C}}, area under the curve {{l2_dev_auc}}) and then frozen. It reads the subject and visible body text.
+- **A TF-IDF classifier with logistic regression** [15], trained on the training split ({{phishing_train}} phishing, {{ham_train}} legitimate), with its one setting chosen on the development split (C = {{l2_C}}, area under the ROC curve {{l2_dev_auc}}) and then frozen. It reads the subject and visible body text.
 - **Lynceus** (commit {{lynceus_commit}}), a local phishing-defence system that the first author designed and built with an AI assistant before this study. Beyond its rules, it can open pages in a sandboxed browser, match threat-intelligence lists and consult a local AI reviewer; we used only its offline message engine, whose fixed rules and weights make it a static layer. We replaced only its Windows sandbox launcher and froze it before any rewrite was scored. Its message rules read mostly links, the sender and HTML structure, plus one phrase rule.
 
 Each layer ran at its default threshold and at one fixed on the development split to flag at most 1% of legitimate emails (SpamAssassin {{spamassassin_threshold}}, TF-IDF {{tfidf_lr_threshold}}, Lynceus {{lynceus_threshold}}).
@@ -130,7 +130,7 @@ Under the LLM rewrite, SpamAssassin's largest change was XPRIO ({{acct_spamassas
 
 These layers draw much of their signal from links, headers, HTML structure and familiar phishing vocabulary. A rewrite that must keep the links, numbers and request keeps most of that signal; rewrites that dropped links did lose Lynceus detections. The new firings of Lynceus's phrase rule are consistent with fluent LLM prose adding urgent wording, a cause we did not test. The synonym swap removed some vocabulary signal; canonicalization, a bundle of changes (Section 3.5), removed far more.
 
-Our result differs from the drops in [2]–[4], and the settings differ in ways that could explain it, none of which we tested: the prompts in [3] and [4] asked the model to replace spam-like words or remove urgency, while ours was neutral; [3]'s 73.7% applies to emails cut to minimal headers; we used a four-billion-parameter local model; and our rewrites had to keep their links and were compared with a version in the same format.
+Contrary to H1, our result differs from the drops in [2]–[4], and the settings differ in ways that could explain it, none of which we tested: the prompts in [3] and [4] asked the model to replace spam-like words or remove urgency, while ours was neutral; [3]'s 73.7% applies to emails cut to minimal headers; we used a four-billion-parameter local model; and our rewrites had to keep their links and were compared with a version in the same format.
 
 The main open question is comparability. The meaning check judged only {{judge_yes_same_label}} of pairs to keep their category. TF-IDF still flagged {{tfidf_lr_phishing_calibrated_llm_vs_null_a_b_pct}} of rewritten phishing and only {{tfidf_lr_ham_calibrated_llm_vs_null_a_b_pct}} of rewritten legitimate mail, but its near-perfect separation of our corpora may rest partly on their era and sources, so it is weak evidence of meaning. With one small judge and 30 pairs, we cannot settle the question.
 
@@ -160,7 +160,7 @@ For rewrites that kept their links, numbers and names, one paraphrase by a small
 
 **Ethics and model licence.** We rewrote only existing phishing emails from a public corpus, offline, after removing personal data. Nothing was sent, no email text left our computer, and the rewrites are not published. The generator's use policy [20] bars generating content for phishing and makes no research exception. We used it only for this defensive evaluation, and we declare that choice here.
 
-**Data and code.** Code, configurations, hashes and aggregate results are at https://github.com/sodik-tursunboev/llm-phishing-study. Raw corpora are not redistributed: anyone can download them again and check them against our hashes. Raw rewrites are available to reviewers on request.
+**Data and code.** Code, configurations, hashes and aggregate results are at https://github.com/sodik-tursunboev/llm-phishing-study. Raw corpora are not redistributed: anyone can download them again and check them against our hashes. Raw rewrites, and Lynceus's source at the evaluated commit, are available to reviewers on request.
 
 **Contributions.**
 
