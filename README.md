@@ -88,7 +88,7 @@ b. A human types their name in `checked` for each pair. Then the summary counts 
 docker run --rm --network none -v "${PWD}:/work" -v llm-phishing-data:/work/data llm-phishing-study python -m src.analysis.judge summary
 ```
 
-c. Optional, not carried out (DEVIATIONS #25): a blind rating of the same pairs by both authors, with Cohen's kappa (`docs/RATING.md`).
+c. Optional, not carried out (DEVIATIONS #25): a blind rating of the same pairs by both authors, with Cohen's kappa (`python -m src.analysis.ratings make`, then `kappa`).
 
 9. **Paper:** fill every number from the result files.
 

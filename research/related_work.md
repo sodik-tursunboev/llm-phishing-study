@@ -34,13 +34,13 @@ Nothing here is from memory. **The comparison row for [2] needs the authors, who
 
 On the abstract alone, the safe claim is that [2] measured machine-learning detectors and we test static, rule-based layers. The manuscript says this without implying that [2] lacked the other features: "Ferrell et al. [2] measured machine-learning detectors; we test static layers, including rule-based ones, with a neutral prompt, require every rewrite to keep its links and numbers, and separate the wording from the conversion to plain text."
 
-**Authors:** after reading [2] in full, check whether it:
+Not known from the abstract, and needed before the sentence could be a direct contrast. Did [2]:
 - named its three LLMs and its prompt;
 - checked that rewrites kept links;
 - tested any rule-based filter;
 - held the email format fixed.
 
-If [2] did none of these, the sentence can safely become a direct contrast ("Unlike [2], ...").
+If [2] did none of these, the sentence could be a direct contrast ("Unlike [2], ...").
 
 ## Open questions
 

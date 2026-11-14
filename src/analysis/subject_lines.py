@@ -1,5 +1,5 @@
-"""How many rewrites carry a "Subject:" line in their body (docs/DEFENSE.md: why the TF-IDF word
-"subject" moved under the LLM rewrite). TF-IDF reads the subject's content, not the word "Subject",
+"""How many rewrites carry a "Subject:" line in their body (why the TF-IDF word "subject" moved
+under the LLM rewrite, results/accounting_test.csv). TF-IDF reads the subject's content, not the word "Subject",
 so the word can only come from the body. Prints counts only, never email text (README section 4).
 
 python -m src.analysis.subject_lines <split>

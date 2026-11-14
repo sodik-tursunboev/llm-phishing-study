@@ -116,7 +116,7 @@ def values():
     if ratings.exists():
         out = json.loads(ratings.read_text())
         v["ratings_equivalent_both"] = f"{100 * out['equivalent_both']:.0f}%"
-        for q, s in out["questions"].items():  # the blind two-author rating (docs/RATING.md)
+        for q, s in out["questions"].items():  # the blind two-author rating (src/analysis/ratings.py)
             v[f"kappa_{q}"], v[f"agreement_{q}"] = s["cohen_kappa"], f"{100 * s['agreement']:.0f}%"
             if s.get("kappa_ci"):
                 v[f"kappa_ci_{q}"] = f"[{s['kappa_ci'][0]:.2f}, {s['kappa_ci'][1]:.2f}]"
