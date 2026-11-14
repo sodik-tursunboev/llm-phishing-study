@@ -173,7 +173,7 @@ For rewrites that kept their links, numbers and names, one paraphrase by a small
 
 ## References
 
-<!-- IEEE style. Every entry below is listed in references/evidence_trail.csv. [19] was added on 2026-11-14 (metadata checked on Crossref only); Kavish verifies it, like every other entry, before submission. -->
+<!-- IEEE style. Every entry below is listed in references/evidence_trail.csv. [19] was added on 2026-11-14 (metadata on Crossref and PubMed, abstract on PubMed); Kavish verifies it, like every other entry, before submission. -->
 
 [1] Federal Bureau of Investigation, Internet Crime Complaint Center, "2025 IC3 annual report," 2026. [Online]. Available: https://www.ic3.gov/AnnualReport/Reports/2025_IC3Report.pdf (accessed Nov. 13, 2026).
 
