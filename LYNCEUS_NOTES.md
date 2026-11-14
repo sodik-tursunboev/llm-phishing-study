@@ -59,7 +59,7 @@ Consequence: the Windows sandbox itself is not part of what we evaluate. It is a
 `score(msg) -> {score, flagged, state, evidence, error, version, config_hash}`
 
 - `score` is Lynceus's risk, 0-100, for every message that did not error. Lynceus computes it from the rules that fired but reports it only for SUSPICIOUS and MALICIOUS (45 and above); an UNKNOWN verdict carries None. The adapter therefore re-runs Lynceus's own scoring function on the same signals with its SUSPICIOUS line set to 0, which returns the risk Lynceus discarded (0 when no rule fired). No rule, weight or cap changes. `reported_score` keeps what Lynceus itself reported. A test over 3,000 random sets of Lynceus's rules checks that the two agree whenever Lynceus reports a score and that the full-range score stays below 45 when it does not (DEVIATIONS.md #16).
-- `flagged` is True for MALICIOUS or SUSPICIOUS, the states where Lynceus warns the user. UNKNOWN ("not enough to call it") is not flagged. *Authors: confirm this mapping.*
+- `flagged` is True for MALICIOUS or SUSPICIOUS, the states where Lynceus warns the user. UNKNOWN ("not enough to call it") is not flagged.
 - An ERROR, or a verdict without a score (the engine gives a reason, such as a parser timeout), becomes `error` with `flagged=None`. It is never counted as benign or flagged.
 - `evidence` lists the rule ids that fired. `config_hash` is the SHA-256 of Lynceus's `rules/` folder.
 - A second, dev-calibrated threshold on `score` (at most 1% false positives on dev originals) was fixed before the freeze, as for the other layers: flag when score > 87 (section 7).

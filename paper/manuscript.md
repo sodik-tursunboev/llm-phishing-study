@@ -1,9 +1,8 @@
 <!--
 Manuscript source. Every number is a {{placeholder}} filled from result and config files by
 `python -m src.paper.build`; never type a number here. Student IDs come from the git-ignored
-paper/authors.local.json. Before submitting, the authors must make every statement in the
-Declarations true. Kavish verified every reference and number (references/evidence_trail.csv); [2] was
-read from its abstract only (research/related_work.md). Both authors must be able to explain every sentence.
+paper/authors.local.json. References are listed with the claim each supports in
+references/evidence_trail.csv; [2] was read from its abstract only (research/related_work.md).
 Structure follows the course's Research Paper Template and Academic Research & Writing guide
 (title of at most 12 words, one-paragraph abstract, keywords, numbered objectives, conclusion),
 with IEEE references, the style the guide maps to computer science. Limit: 3,000 words from the

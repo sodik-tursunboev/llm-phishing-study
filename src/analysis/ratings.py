@@ -3,7 +3,7 @@
 python -m src.analysis.ratings make    ->  ratings/sheet_sodik.csv and ratings/sheet_kavish.csv
 python -m src.analysis.ratings kappa   ->  results/ratings.json (agreement, Cohen's kappa with a
                                            bootstrap CI, and how often the model judge agreed)
-How to rate: docs/RATING.md. The AI assistant never rates.
+Rules: each author rates alone, without the model's answers. The AI assistant never rates.
 
 The 30 pairs are the first 15 phishing and first 15 legitimate test rewrites that pass every gate,
 in generation order (itself a seeded random order, so this is a random sample, and the same 30 pairs

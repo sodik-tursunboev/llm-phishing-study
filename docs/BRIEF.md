@@ -6,15 +6,9 @@ Controlled, offline, reproducible study · Vistula University · Architecture of
 **Official topic:** The Evasion Capabilities of LLM-Generated Phishing Payloads Against Static Security Architectures
 **Version:** v1 · 2026-11-11 · **Scope update v3 (2026-11-11) supersedes parts of this brief; every change is listed in `DEVIATIONS.md`.**
 
+> This is the study plan as written before the work began. Sections 1 (course logistics) and 13 (the authors' to-do list) are not part of the study design and are left out of this copy; the git history keeps the original.
+
 > **Claude Code: read this whole file before acting.** It is the single source of truth. Work one milestone at a time (section 10), stop at every **[GATE]**, and keep replies short (section 9). Start with **M0 only**. Never invent results, references, or facts about Lynceus: derive them from code and data, or write UNKNOWN.
-
-## 1. Stakes and rules (Student Handbook, version of 5 Nov 2026)
-
-- The project is **50% of the lecture grade**, scored out of 100, **pass = 60**. Rubric: question and relevance 20 · methodology 25 · evidence and reliability 25 · analysis and interpretation 15 · integrity and reproducibility 10 · writing 5.
-- **Final PDF: Mon 30 Nov 2026, one upload to Platon** (one attempt, no routine revisions). The proposal was approved on 10 Nov. No more individual feedback, and no progress emails are owed.
-- About 10 finalists (+0.5 grade bonus) are chosen on contribution, baseline choice, confounder control, reproducibility, limitations and oral understanding. **Defenses: 7-11 Dec.** Negative results and rigorous replications are explicitly valued. Fabricating or hiding results is an integrity violation.
-- Mandatory: AI-use declaration; reproducibility package (code, dependency list, input data or generation procedure, raw results, run instructions, limitations); real, checked references (they are audited). A research letter of at most 3,000 words including the abstract is preferred.
-- Priorities: **(1) pass safely** with real data and honest claims, (2) finalist quality, (3) portfolio value.
 
 ## 2. Coordinator guidance (binding)
 
@@ -165,7 +159,7 @@ Outputs go in `research/`. Use only sources actually opened. Every file ends wit
 - Dev is for calibration only. Never tune on test. Freeze before scoring rewrites.
 - Write UNKNOWN when unknown. Stop at every **[GATE]** and ask.
 - Log every substantive AI use in `AI_LOG.md` (tool, date, purpose, how verified).
-- Write code the authors can explain at the defense: simple, commented on the *why*.
+- Write code the authors can explain: simple, commented on the *why*.
 - **Reply format, at most 100 words:** Done · Verified (how) · Needs human · Next. No log dumps.
 
 ## 10. Milestones (2026)
@@ -204,15 +198,6 @@ research/ references/ paper/ tests/ results/ data/ (gitignored)
 ```
 
 One command per stage (data, rewrite, score, analyze, paper). At M7, move this brief to `docs/BRIEF.md` and write a short reviewer-facing README with exact run instructions, so a reviewer can reproduce everything from manifests and hashes.
-
-## 13. Open items for the authors
-
-1. Kavish's surname, and roles in `CONTRIBUTIONS.md`. Both authors must be able to defend everything (7-11 Dec).
-2. Read the coordinator's 2025 paper; fill the comparison row in `research/related_work.md`.
-3. Confirm the Lynceus authorship split and status.
-4. Approve generators, n, thresholds and interventions (M3-M4).
-5. Do the human audit (M6).
-6. Confirm Platon PDF naming and repo visibility (public vs reviewer-only).
 
 ## 14. Limitations to state in the paper
 
