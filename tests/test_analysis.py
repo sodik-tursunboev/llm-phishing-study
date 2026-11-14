@@ -90,3 +90,47 @@ def test_decomposition_steps_add_up_and_the_table_is_rebuilt_from_the_row():
     assert table(wording) == (59, 0, 9, 132)
     [out] = decomposition_rows([canon, wording])
     assert (out["canonicalization_pp"], out["wording_pp"], out["end_to_end_pp"]) == (-25.5, 4.5, -21.0)
+
+
+def test_cohen_kappa_matches_scikit_learn_and_is_undefined_without_variation():
+    import random
+
+    from sklearn.metrics import cohen_kappa_score
+
+    from src.analysis.ratings import cohen_kappa
+
+    rng = random.Random(0)
+    for _ in range(20):
+        a = [rng.choice(["yes", "no"]) for _ in range(30)]
+        b = [x if rng.random() < 0.7 else rng.choice(["yes", "no"]) for x in a]
+        assert cohen_kappa(a, b) == pytest.approx(cohen_kappa_score(a, b))
+    assert cohen_kappa(["yes"] * 30, ["yes"] * 30) is None  # both raters always "yes": chance agreement is 1
+
+
+def test_kappa_refuses_blank_answers_and_records_sheet_hashes(tmp_path, monkeypatch):
+    import csv
+    import json
+
+    from src.analysis import ratings
+
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "ratings").mkdir()
+    (tmp_path / "results").mkdir()
+
+    def write(rater, answer):
+        with open(f"ratings/sheet_{rater}.csv", "w", newline="", encoding="utf-8-sig") as f:
+            w = csv.writer(f)
+            w.writerow(["pair", "original", "rewrite", *ratings.QUESTIONS, "notes"])
+            w.writerow(["(question)", "", "", *ratings.QUESTIONS.values(), ""])
+            for i in range(1, 5):
+                w.writerow([f"P{i:02d}", "a", "b", *[answer(i)] * len(ratings.QUESTIONS), ""])
+
+    write("sodik", lambda i: "yes" if i % 2 else "no")
+    write("kavish", lambda i: "" if i == 3 else "yes")
+    with pytest.raises(SystemExit, match="blank or not yes/no"):
+        ratings.kappa()
+    write("kavish", lambda i: "yes" if i < 4 else "no")
+    ratings.kappa()
+    out = json.loads((tmp_path / "results/ratings.json").read_text())
+    assert out["pairs"] == 4 and set(out["sheet_sha256"]) == {"sodik", "kavish"}
+    assert out["questions"]["same_label"]["agreement"] == 0.75

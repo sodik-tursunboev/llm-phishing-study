@@ -13,7 +13,7 @@ A paired, offline study by **Sodik Tursunboev** and **Kavish Chaudhari** (Vistul
 | The paper and where its numbers come from | `paper/manuscript.md`; `src/paper/build.py` fills every `{{number}}` from `results/` and `configs/` |
 | The plan was fixed before any rewrite was scored | `PROTOCOL.md`, git tag `protocol-freeze-v1` (`cf4accd`) |
 | Lynceus was frozen before scoring | `LYNCEUS_NOTES.md`, git tag `lynceus-eval-v1` (`450e6d8`), Lynceus commit `ac2a5af` |
-| Every change to the plan, and why | `DEVIATIONS.md` (#1–#24) |
+| Every change to the plan, and why | `DEVIATIONS.md` (#1–#25) |
 | Pinned environment | `Dockerfile` (base image by digest, SpamAssassin by version, WordNet by hash), `requirements.txt`, `ENVIRONMENT.md` |
 | Data sources, licences, file hashes | `DATA_PROVENANCE.md`, `configs/raw_files.csv` |
 | Every message, its hash, cluster and split | `results/m1_messages.csv`, `results/m1_sources.csv`, `results/m1_splits.csv` |
@@ -23,7 +23,7 @@ A paired, offline study by **Sodik Tursunboev** and **Kavish Chaudhari** (Vistul
 | Paired score intervals; end-to-end change split into canonicalization and wording (added after the freeze) | `results/exact_test.csv`, `results/decomposition_test.csv` |
 | Gates, kept vs discarded, canonicalization | `results/gates_test.csv`, `results/selection_test.csv`, `results/canonical_test.json` |
 | What moved (rules and words) | `results/accounting_test.csv` |
-| 30-pair meaning check | `results/judge.json` |
+| 30-pair meaning check | `results/judge.json` (model judge, checked by Kavish); blind two-author rating: `docs/RATING.md`, then `results/ratings.json` |
 | Pilot | `results/m3_pilot.json`, `results/*_pilot.*` |
 | Who did what; AI use | `CONTRIBUTIONS.md`, `AI_LOG.md` |
 | Every reference and the claim it supports | `references/evidence_trail.csv` |
@@ -88,13 +88,15 @@ b. A human types their name in `checked` for each pair. Then the summary counts 
 docker run --rm --network none -v "${PWD}:/work" -v llm-phishing-data:/work/data llm-phishing-study python -m src.analysis.judge summary
 ```
 
+c. Both authors rate the same 30 pairs blind and independently; then the agreement and Cohen's kappa are computed. Steps and rules: `docs/RATING.md`.
+
 9. **Paper:** fill every number from the result files.
 
 ```bash
 docker run --rm --network none -v "${PWD}:/work" llm-phishing-study python -m src.paper.build
 ```
 
-10. **Check command:** 45 tests, offline.
+10. **Check command:** 47 tests, offline.
 
 ```bash
 docker run --rm --network none -v "${PWD}:/work" -v llm-phishing-data:/work/data -v lynceus-src:/opt/lynceus:ro llm-phishing-study python -m pytest -q -p no:cacheprovider
