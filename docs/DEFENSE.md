@@ -10,7 +10,7 @@ Numbers below come from `results/` (file in brackets). If a number in the paper 
 - a dictionary synonym swap;
 - one rewrite by a small local model that had to keep every link, number and name.
 
-Three static detectors scored all four versions: SpamAssassin, a TF-IDF classifier, and Lynceus, Sodik's own rule-based tool. The rewrite did **not** lower detection: for SpamAssassin and TF-IDF a drop larger than 2 points is ruled out, and Lynceus was at its floor at the strict threshold. The big drop came from turning HTML emails into plain text, not from the new wording."
+Three static detectors scored all four versions: SpamAssassin, a TF-IDF classifier, and the static message engine of Lynceus, Sodik's own phishing-defence system. The rewrite did **not** lower detection: for SpamAssassin and TF-IDF a drop larger than 2 points is ruled out, and Lynceus was at its floor at the strict threshold. The big drop came from turning HTML emails into plain text, not from the new wording."
 
 ## 2. Why our controls isolate the wording
 
@@ -51,7 +51,7 @@ Gates check facts (links, numbers), not meaning. A rewrite could keep every link
 
 ## 6. Lynceus: what you built and how it fits
 
-- **What it is:** Sodik's local, rule-based phishing detector (URL rules, sender rules, HTML and link rules, one phrase rule), built before this study. Sodik designed its full architecture and built it with an AI assistant: Sodik set the architecture, chose what it detects and approved every rule and weight; the assistant wrote the code and drafted rules and weights under Sodik's direction. The paper says exactly that (`LYNCEUS_NOTES.md` section 9).
+- **What it is:** Sodik's local phishing-defence system, built before this study and still being improved. It has URL, message and file engines, page detonation in a sandboxed browser, threat-intelligence lists, macro analysis that reads the code, and a local AI reviewer. This study used only its offline message engine (URL rules, sender rules, HTML and link rules, one phrase rule). Sodik designed its full architecture and built it with an AI assistant: Sodik set the architecture, chose what it detects and approved every rule and weight; the assistant wrote the code and drafted rules and weights under Sodik's direction. The paper says exactly that (`LYNCEUS_NOTES.md` section 9).
 - **How it fits:** one of three layers, used through its own message engine. Only the Windows sandbox launcher was swapped, so it runs offline in Docker. It was frozen (tag `lynceus-eval-v1`) before any rewrite was scored.
 - **Conflict of interest:** we evaluated our own tool under the same controls and reported its results as they came:
   - at the 1% false-alarm threshold it sits near the floor (catching 1–2%);
@@ -61,7 +61,7 @@ Gates check facts (links, numbers), not meaning. A rewrite could keep every link
 ## 7. What we add beyond Ferrell et al. [2]
 
 [2] measured machine-learning detectors (BERT, Word2Vec, stylometric) on rephrased emails and found 3–20% drops. **We have only read its abstract; read the full text before the defence** and check the open questions in `research/related_work.md`. We add:
-- static **rule-based** layers;
+- static layers, including **rule-based** ones;
 - rewrites forced to keep links and numbers;
 - a **paired** test with confidence intervals;
 - the separation of **wording** from **canonicalization**.
@@ -86,6 +86,7 @@ Our result: wording alone did not lower detection here; canonicalization did. En
 - **Why did the TF-IDF word "subject" move when the subject never changes?** Each email's vector is scaled to unit length, so any change in other words changes every word's weight.
 - **Isn't "canonicalization hurts" just "deleting information hurts"?** Partly, yes, and we say it is a bundle. The point is where the deletion happens: a layer placed after text extraction loses its signal, and an evasion study that compares a plain-text rewrite with an HTML original credits that loss to the LLM.
 - **What exactly did you build in Lynceus?** (Sodik) The architecture, what it detects, the milestones and every design decision, and I ran and checked it on my machine. The AI assistant wrote the code and drafted rule weights under my direction. Be ready to walk through a message's path: sandboxed parser worker, then every link through the URL engine, then the message rules, then risk scoring (`LYNCEUS_NOTES.md` sections 3 and 6).
+- **Is Lynceus a static detector?** Not as a whole: it also opens pages in a sandboxed browser, matches threat-intelligence lists and can ask a local AI reviewer. This study used only its offline message engine at the frozen commit `ac2a5af`, where the rules and weights are fixed, nothing touches the network and the same email always gets the same verdict. That path is static, which is why it fits a study of static defences. Later improvements are not evaluated here.
 - **What next?** Several models, an adaptive attacker, HTML-preserving rewrites, and a larger human meaning check.
 
 ## 9. Weaknesses to admit before they are pointed out

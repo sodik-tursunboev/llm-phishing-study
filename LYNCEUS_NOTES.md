@@ -12,16 +12,21 @@ Everything below comes from the Lynceus repository at the pinned commit (code, `
 | Licence | **UNKNOWN**: the repository has no LICENSE, COPYING or NOTICE file |
 | History | 83 commits, 2026-11-04 to 2026-11-10, all authored by `sodik-t`; each with an AI co-author trailer. |
 
-## 2. What it does (its own README)
+## 2. What Lynceus is
 
-A local-first phishing detector for Windows with these parts:
-- a URL engine (readable rules);
-- message and file engines that parse in a sandboxed worker;
-- optional threat-intelligence lists and providers;
-- a Windows agent, a browser extension and a console;
-- read-only Gmail and Outlook connectors.
+Sources: Lynceus's own `FEATURES.md`, `DETECTION_ENGINE.md` and `KNOWN_LIMITATIONS.md` (version of 2026-11-11, provided by the author on 2026-11-14), and its README. Lynceus is still being improved; this study evaluates commit `ac2a5af` only.
 
-Verdicts are `MALICIOUS | SUSPICIOUS | BENIGN | UNKNOWN | ERROR`, each with a risk score, the rules that fired and evidence. Its README reports that its URL rules catch 2.5% of real phishing URLs on its own E1 evaluation (`docs/eval/url-real.md` in that repository, not checked here).
+Lynceus is a local-first phishing-defence system for Windows. It is more than a static detector:
+- **URL engine:** 20 readable rules (lookalike and typosquat domains, encoded targets, credential bait and more) over a browser-grade URL parser.
+- **Message and file engines:** MIME, header, HTML and link analysis, sender and authentication checks, and attachment inspection (scripts, shortcuts, programs, PDFs, archives, images with QR codes, Office documents), each parsed in a sandboxed worker.
+- **Macro analysis:** a bounded evaluator runs a macro's own string-building code, and call-graph analysis follows auto-run code to dangerous calls.
+- **Page detonation (D1):** on request, opens a page in a throwaway, locked-down browser container and judges what it shows, with 10 page rules.
+- **Threat intelligence:** OpenPhish and PhishTank lists matched locally; optional VirusTotal, urlscan, URLhaus, MalwareBazaar and domain age.
+- **Local AI reviewer:** `llama3.2:3b` through Ollama gives advice on macros. It is off by default, and can add at most one weak signal, never decide.
+- **Scoring:** a published risk model (noisy-OR per category, capped, then across categories, 0 to 100). MALICIOUS needs a high score and strong evidence of two independent kinds.
+- **Around the engine:** a Windows agent, a browser extension with warning pages, a console, reversible quarantine, and read-only Gmail and Outlook connectors (tested against fakes only).
+
+Verdicts are `MALICIOUS | SUSPICIOUS | BENIGN | UNKNOWN | ERROR`, each with a risk score, the rules that fired and evidence. Lynceus's own measurements (not re-run here): its URL rules alone catch 2.5% of real phishing URLs (E1), and URL rules plus the opened page catch 37.3% of live phishing pages (D1 test half). Learned scoring is planned, not built.
 
 ## 3. What we use, and what we do not
 
@@ -38,9 +43,10 @@ Only `core/` and `rules/` are copied, by `git archive`, into the Docker volume `
 - threat intelligence: needs the network, and stays off because no `LYNCEUS_INTEL_PROVIDERS` is set;
 - known-bad hash lists: none are configured, so `intel.hash_known_bad` cannot fire;
 - the local-model reviewer: `analyze_message` does not call it;
-- attachment parsers (pikepdf, Pillow, OpenCV): not installed, because every study message is text-only, so attachment inspection is never triggered.
+- attachment parsers (pikepdf, Pillow, OpenCV) and macro analysis: not installed, because every study message is text-only, so attachment inspection is never triggered;
+- page detonation (D1): it needs Docker and the network, opens live pages, and is never called on the message path.
 
-**Static and offline?** Yes, on this path. Fixed rules and weights, no training, no network (the container has none), deterministic. `tests/test_lynceus.py` checks one message gives an identical result twice, and the test-split run below checks the same at scale.
+**Static and offline?** Lynceus as a whole is not purely static (page detonation, intelligence feeds, the local reviewer). The path this study uses is. Fixed rules and weights, no training, no network (the container has none), deterministic. `tests/test_lynceus.py` checks one message gives an identical result twice, and the test-split run below checks the same at scale.
 
 ## 4. The one adaptation
 
