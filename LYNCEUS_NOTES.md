@@ -91,9 +91,9 @@ The new detonation code is not on the path this study uses.
 - Its rules were written by the same authors who run this study (conflict of interest, README section 7.5): results are reported whatever they are, with the same controls as every layer.
 - The frozen version must never be tuned on rewritten data. A bug found after the freeze goes to `DEVIATIONS.md` and triggers a full re-run.
 
-## 9. Authorship split (answered by the authors on 2026-11-12)
+## 9. Authorship
 
-**Authors' statement:** Lynceus was authored by Sodik Tursunboev before this study. Kavish Chaudhari is Sodik's partner in this study and did not write Lynceus.
+**Authors' statement:** Lynceus is Sodik Tursunboev's tool. Sodik, a SOC and cybersecurity analyst, designed its full architecture and built it with an AI assistant before this study. Kavish Chaudhari is Sodik's partner in this study and did not write Lynceus.
 
 Dates from the two git histories:
 - Lynceus's first commit is 2026-11-04.
@@ -101,18 +101,14 @@ Dates from the two git histories:
 - This study's first commit is 2026-11-11 00:23.
 - The evaluated version, `ac2a5af` (2026-11-12 14:00), adds Sodik's later improvements, made without study data. They change no verdict on this study's data (DEVIATIONS.md #17).
 
-The table below records how Lynceus was built, AI assistance included, so the paper can answer the coordinator's question exactly.
+The coordinator asked what we built ourselves. Git history alone does not establish contributions (README section 7.1); it shows one human author, Sodik, with an AI co-author on every commit. The table records who did what. It was compiled on 2026-11-12 from the Lynceus git history at `ac2a5af` and its provenance files, and updated on 2026-11-14 with the author's statement on the architecture.
 
-The coordinator asked what we built ourselves. Git history alone does not establish contributions (README section 7.1). It shows one human author, with an AI co-author on every commit.
-
-Compiled on 2026-11-12 from the Lynceus git history at `ac2a5af` and its provenance files, and confirmed by the authors (statement above). "None known" means the history shows none.
-
-| Part | Written by us | AI-assisted (how) | Third-party |
+| Part | Sodik | AI assistant | Third-party |
 |---|---|---|---|
-| Direction, scope and decisions | Sodik: set the goals and the milestone order, chose what to build, approved each plan, every architecture decision record (24 at `d9c3ba8`, 25 at `ac2a5af`) and every new dependency, chose the evaluation datasets, and ran the installs and live checks on Sodik's own machine | The AI assistant proposed designs and drafted plans and decision records for Sodik's approval | None |
-| Rule design (which signs of phishing, weights) | None known: no rule or weight is recorded as written by the authors; the authors approved them milestone by milestone | The AI assistant proposed the signs of phishing and set every weight, cap and threshold by hand, from general knowledge of phishing techniques, then checked them on its own synthetic corpus and, for URLs, on real data (E1). Weights were never fitted: a fit on E1 data was tried and not adopted. The message rules used here are unchanged since 2026-11-10 | MITRE ATT&CK technique ids, as labels only |
-| Rule and engine code | None known | Written with the AI assistant from Sodik's instructions: all 84 commits (2026-11-04 to 2026-11-12) are authored as `sodik-t` and every one carries an AI co-author trailer | The libraries in the next rows |
-| Rule data (brand lists, phrase lists) | None known | Drafted with the AI assistant from general knowledge and not verified against any source, as their own file headers say: `rules/url/brands.toml` and `rules/url/lists.toml` (2026-11-04), `rules/email/lists.toml` (urgency and credential phrases, English and Polish, 2026-11-05) | `rules/url/data/confusables.txt`: Unicode UTS #39 confusables 18.0.0, unmodified, Unicode License (`rules/url/data/PROVENANCE.md`). `core/urls/data/public_suffix_list.dat`: Public Suffix List snapshot of 2026-11-04, MPL 2.0 (`core/urls/data/PROVENANCE.md`) |
+| Architecture, direction and decisions | Designed the full architecture (the parts in section 2); set the goals and the milestone order; chose what to build; approved each plan, every architecture decision record (24 at `d9c3ba8`, 25 at `ac2a5af`) and every new dependency; chose the evaluation datasets; ran the installs and live checks on Sodik's own machine | Drafted plans and decision records from Sodik's design, for Sodik's approval | None |
+| Rule design (which signs of phishing, weights) | Chose what Lynceus detects; approved the rules and weights milestone by milestone | Drafted the signs of phishing and set each weight, cap and threshold by hand, from general knowledge of phishing techniques, then checked them on its own synthetic corpus and, for URLs, on real data (E1). Weights were never fitted: a fit on E1 data was tried and not adopted. The message rules used here are unchanged since 2026-11-10 | MITRE ATT&CK technique ids, as labels only |
+| Rule and engine code | Built it with the assistant: directed every step, and ran and checked the result | Wrote the code from Sodik's instructions: all 84 commits (2026-11-04 to 2026-11-12) are authored as `sodik-t` and every one carries an AI co-author trailer | The libraries in the next rows |
+| Rule data (brand lists, phrase lists) | Approved with each milestone | Drafted from general knowledge and not verified against any source, as their own file headers say: `rules/url/brands.toml` and `rules/url/lists.toml` (2026-11-04), `rules/email/lists.toml` (urgency and credential phrases, English and Polish, 2026-11-05) | `rules/url/data/confusables.txt`: Unicode UTS #39 confusables 18.0.0, unmodified, Unicode License (`rules/url/data/PROVENANCE.md`). `core/urls/data/public_suffix_list.dat`: Public Suffix List snapshot of 2026-11-04, MPL 2.0 (`core/urls/data/PROVENANCE.md`) |
 | Parser libraries | | | On this study's path (text-only messages): ada-url (URL parsing) and pydantic (data models) in the engine, and the Python standard library (`email`, `html.parser`) in the parser worker, which imports nothing else. lxml, pikepdf, Pillow and OpenCV are used only for attachments and are not installed here |
 | Kavish's part in Lynceus | None: Kavish did not write Lynceus (authors' statement, 2026-11-12); no commits under another name | | |
 
