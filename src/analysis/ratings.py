@@ -1,4 +1,4 @@
-"""The blind rating of the 30 pairs by both authors (planned in scope v3, reinstated in DEVIATIONS.md #25).
+"""The blind rating of the 30 pairs by both authors (planned in scope v3; prepared but not carried out, DEVIATIONS.md #25).
 
 python -m src.analysis.ratings make    ->  ratings/sheet_sodik.csv and ratings/sheet_kavish.csv
 python -m src.analysis.ratings kappa   ->  results/ratings.json (agreement, Cohen's kappa with a

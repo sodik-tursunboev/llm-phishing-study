@@ -25,7 +25,7 @@ Three static detectors scored all four versions: SpamAssassin, a TF-IDF classifi
 null-A is a **controlled canonicalization**, not "format only" (`canonical_test.json`). For phishing:
 - 64% were HTML-only and became visible text with `<URL>`;
 - 30% had a plain part, so the HTML part was dropped;
-- 71% lost at least one link, mostly image or style links outside anchors.
+- 71% lost at least one link (median 2.5 → 1). Which kind of link was not measured: in HTML-only emails, links outside anchors (images, styles); in the others, any link that sat only in the dropped HTML part.
 
 So orig → null-A is causal for this **bundle**. We cannot say whether the HTML structure or the lost links matter more. Say exactly that.
 

@@ -30,7 +30,8 @@ def values():
         v[f"{r['label']}_{r['split']}"] = int(r["messages"])
         v[f"{r['label']}_{r['split']}_pct_html"] = f"{float(r['pct_html']):.0f}%"
     l2 = json.loads(pathlib.Path("configs/tfidf_lr.json").read_text())
-    v["l2_C"], v["l2_dev_auc"] = l2["C"], l2["dev_auc_by_C"][str(l2["C"])]
+    v["l2_C"] = int(l2["C"]) if float(l2["C"]).is_integer() else l2["C"]  # "C = 100", not "100.0"
+    v["l2_dev_auc"] = l2["dev_auc_by_C"][str(l2["C"])]
     thresholds = pathlib.Path("configs/thresholds.json")
     if thresholds.exists():
         for layer, t in json.loads(thresholds.read_text())["layers"].items():

@@ -1,6 +1,6 @@
 # Blind rating of the 30 pairs (both authors)
 
-**Why.** The coordinator asked how the rewrites are shown to be comparable with their originals. Right now the only evidence besides the gates is a small model judge: it says only 30% of rewrites keep their category, and one author accepted every answer. Two independent human ratings with Cohen's kappa were the plan before that (README 5.3, DEVIATIONS #4), and they are reinstated (DEVIATIONS #25).
+**Why.** The coordinator asked how the rewrites are shown to be comparable with their originals. Right now the only evidence besides the gates is a small model judge: it says only 30% of rewrites keep their category, and one author accepted every answer. Two independent human ratings with Cohen's kappa were the plan before that (README 5.3, DEVIATIONS #4). On 2026-11-14 the authors decided not to carry it out (DEVIATIONS #25); these steps stay here in case they change their minds.
 
 **Time.** About 2–3 hours each.
 

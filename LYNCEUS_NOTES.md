@@ -62,7 +62,7 @@ Consequence: the Windows sandbox itself is not part of what we evaluate. It is a
 - `flagged` is True for MALICIOUS or SUSPICIOUS, the states where Lynceus warns the user. UNKNOWN ("not enough to call it") is not flagged. *Authors: confirm this mapping.*
 - An ERROR, or a verdict without a score (the engine gives a reason, such as a parser timeout), becomes `error` with `flagged=None`. It is never counted as benign or flagged.
 - `evidence` lists the rule ids that fired. `config_hash` is the SHA-256 of Lynceus's `rules/` folder.
-- A second, dev-calibrated threshold on `score` (1% false positives on dev originals) will be fixed before the freeze, as for the other layers (README section 5.4).
+- A second, dev-calibrated threshold on `score` (at most 1% false positives on dev originals) was fixed before the freeze, as for the other layers: flag when score > 87 (section 7).
 
 ## 6. How a rewrite can reach Lynceus (from its rule code)
 
