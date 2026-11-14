@@ -23,7 +23,7 @@ A paired, offline study by **Sodik Tursunboev** and **Kavish Chaudhari** (Vistul
 | Paired score intervals; end-to-end change split into canonicalization and wording (added after the freeze) | `results/exact_test.csv`, `results/decomposition_test.csv` |
 | Gates, kept vs discarded, canonicalization | `results/gates_test.csv`, `results/selection_test.csv`, `results/canonical_test.json` |
 | What moved (rules and words) | `results/accounting_test.csv` |
-| 30-pair meaning check | `results/judge.json` (model judge, checked by Kavish); blind two-author rating: `docs/RATING.md`, then `results/ratings.json` |
+| 30-pair meaning check | `results/judge.json` (model judge, checked by Kavish) |
 | Pilot | `results/m3_pilot.json`, `results/*_pilot.*` |
 | Who did what; AI use | `CONTRIBUTIONS.md`, `AI_LOG.md` |
 | Every reference and the claim it supports | `references/evidence_trail.csv` |
@@ -88,7 +88,7 @@ b. A human types their name in `checked` for each pair. Then the summary counts 
 docker run --rm --network none -v "${PWD}:/work" -v llm-phishing-data:/work/data llm-phishing-study python -m src.analysis.judge summary
 ```
 
-c. Both authors rate the same 30 pairs blind and independently; then the agreement and Cohen's kappa are computed. Steps and rules: `docs/RATING.md`.
+c. Optional, not carried out (DEVIATIONS #25): a blind rating of the same pairs by both authors, with Cohen's kappa (`docs/RATING.md`).
 
 9. **Paper:** fill every number from the result files.
 
