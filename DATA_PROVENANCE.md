@@ -78,10 +78,10 @@ Outputs: `data/messages.jsonl` holds the content (private, in the volume). `resu
 
 ## Open questions
 
-1. **Era match.** SpamAssassin ham is from 2002-2003; Nazario phishing spans 2005-2022. A classifier could learn "era" instead of "phishing". Option: keep only phishing from the 2005-2007 files. Kept counts per file are in `results/m1_sources.csv`, so the authors can decide whether the 2005-2007 subset still gives at least 300 test messages.
-2. **HTML imbalance.** Most kept phishing is HTML and most ham is plain text (`results/m1_splits.csv`). This does not bias the paired original-vs-rewrite comparison, but it inflates baseline detection and belongs in the limitations.
-3. Should we ask the corpus owner about `private-phishing4.mbox`? Default: no, keep it excluded.
-4. Exact CC BY attribution wording for the paper.
+1. **Era match.** SpamAssassin ham is from 2002-2003; Nazario phishing spans 2005-2022. A classifier could learn "era" instead of "phishing". Option: keep only phishing from the 2005-2007 files. Kept counts per file are in `results/m1_sources.csv`, so the authors can decide whether the 2005-2007 subset still gives at least 300 test messages. **Status:** all 2005-2022 files were kept; the paper lists era as a limitation (section 5.3).
+2. **HTML imbalance.** Most kept phishing is HTML and most ham is plain text (`results/m1_splits.csv`). This does not bias the paired original-vs-rewrite comparison, but it inflates baseline detection and belongs in the limitations. **Status:** in the paper's limitations (section 5.3).
+3. Should we ask the corpus owner about `private-phishing4.mbox`? Default: no, keep it excluded. **Status:** excluded; it is not in `configs/raw_files.csv`.
+4. Exact CC BY attribution wording for the paper. **Status:** the paper names the corpus, its author, its licence (CC BY 4.0) and its source address (reference [5]).
 
 ## Not verified
 

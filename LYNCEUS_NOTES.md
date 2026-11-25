@@ -10,7 +10,7 @@ Everything below comes from the Lynceus repository at the pinned commit (code, `
 | Version evaluated | branch `main`, commit **`ac2a5af9b4f209a76c881a5337c5291b25b54c63`** ("D1: page detonation ...", re-pinned 2026-11-12; DEVIATIONS.md #17). It was first pinned at `d9c3ba88f9b995d9079434d39ad8d977dbb49b05`. The other branch, `rename-lynceus` (worktree `C:\lynceus-work`), has no commit that `main` lacks. |
 | Engine versions | `lynceus ac2a5af9b4f2 email-1.2.0 rules 1.3.0+70796a1de43c`, as reported by the adapter; `rules/` SHA-256 `176402d19e7d02d741770bd858c74a4071b5ff2bc3539fd7f515242b21af485e`. The adapter refuses to run on any other commit. |
 | Licence | **UNKNOWN**: the repository has no LICENSE, COPYING or NOTICE file |
-| History | 83 commits, 2026-11-04 to 2026-11-10, all authored by `sodik-t`; each with an AI co-author trailer. |
+| History | 84 commits at `ac2a5af`, 2026-11-04 to 2026-11-12 (83 at the first pin), all authored by `sodik-t`; each with an AI co-author trailer. |
 
 ## 2. What Lynceus is
 

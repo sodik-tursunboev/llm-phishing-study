@@ -144,3 +144,9 @@ def test_subject_line_check_and_typographic_minus():
     assert not has_subject_line("The subject of this email is your account.")
     assert minus("-25.5 [-31.6, -19.7]") == "−25.5 [−31.6, −19.7]"
     assert minus("email-1.2.0, 2026-11-14, +4.5") == "email-1.2.0, 2026-11-14, +4.5"  # hyphens in words stay
+
+
+def test_measurements_reproduce_the_main_results():
+    """The published per-email scores give every row of results/primary_test.csv (exits on any difference)."""
+    from src.analysis.measurements import check
+    check("test")

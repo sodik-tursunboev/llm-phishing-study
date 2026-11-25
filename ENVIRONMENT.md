@@ -1,6 +1,6 @@
 # Environment
 
-Every stage runs in one Docker image (`Dockerfile`). Every stage except the corpus download runs with `--network none`, so experiments cannot reach the internet (README section 4). The network is used only to build the image and to download the corpora.
+Every stage runs in one Docker image (`Dockerfile`). Data preparation, scoring and analysis run with `--network none`, so they cannot reach the internet (README section 4). The network is used only to build the image, to download the corpora, and to reach Ollama on the host for rewriting and the model judge (DEVIATIONS.md #11, #20).
 
 ## Pinned versions (recorded 2026-11-11)
 
@@ -34,7 +34,7 @@ Build the image (after any change to `Dockerfile` or `requirements.txt`):
 docker build -t llm-phishing-study .
 ```
 
-Download the corpora and verify their hashes (the only step with network):
+Download the corpora and verify their hashes (needs the network):
 
 ```bash
 docker run --rm -v "${PWD}:/work" -v llm-phishing-data:/work/data llm-phishing-study python -m src.data.download
@@ -101,7 +101,7 @@ git config core.hooksPath hooks
 
 ## Open questions
 
-- Should the Ollama rewriting stage (M3) also run in a container? It needs a local network to the model server, unlike scoring.
+- Should the Ollama rewriting stage (M3) also run in a container? It needs a local network to the model server, unlike scoring. **Answered by DEVIATIONS #11:** it runs in a container with network access and calls Ollama on the host; it is local but not network-isolated.
 
 ## Not verified
 
